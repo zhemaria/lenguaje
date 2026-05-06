@@ -1,1 +1,773 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rapidez en conectores y transiciones — GED</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    :root {
+      --cp: #0089cd; --cs: #005f8f; --ch: #00a8fc;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 10px;
+      background: linear-gradient(135deg, #0089cd, #002d4d);
+      display: flex; justify-content: center; align-items: flex-start;
+      min-height: 90vh; flex-direction: column; gap: 10px;
+    }
+    #quiz-container {
+      background: #fff; border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      overflow: hidden; width: clamp(300px, 95%, 820px);
+      margin: 0 auto;
+    }
+    .quiz-progress-header {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      padding: 16px 22px; border-bottom: 3px solid var(--cp);
+    }
+    .progress-text {
+      text-align: center; font-weight: 700;
+      font-size: clamp(0.95em, 2.5vw, 1.1em);
+      color: var(--cp); margin-bottom: 10px;
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .progress-container {
+      background: #e0e0e0; height: 12px; border-radius: 6px;
+      overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .progress-bar {
+      height: 100%; width: 5%;
+      background: linear-gradient(90deg, var(--cp), var(--ch));
+      transition: width 0.5s cubic-bezier(0.4,0,0.2,1); border-radius: 6px;
+    }
+    .question-meta {
+      display: flex; align-items: center; justify-content: center;
+      padding: 14px 20px 0; gap: 10px; flex-wrap: wrap;
+    }
+    .cat-badge {
+      padding: 5px 15px; border-radius: 20px;
+      font-size: 0.8em; font-weight: 700; color: #fff;
+      letter-spacing: 0.4px;
+    }
+    .time-badge {
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 0.78em; font-weight: 600;
+      background: #e8f4f8; color: #444;
+      border: 1px solid #ccc;
+    }
+    .question-header {
+      padding: 16px 22px 8px;
+      font-size: clamp(1em, 2.6vw, 1.18em);
+      font-weight: 700; text-align: center;
+      color: #1a1a2e; line-height: 1.55;
+    }
+    .word-box {
+      background: linear-gradient(135deg, #f0f7ff, #e4effc);
+      border: 2px solid var(--cp); border-radius: 10px;
+      margin: 0 22px 14px; padding: 16px 18px;
+      font-size: clamp(1.05em, 2.6vw, 1.15em);
+      font-weight: 500; text-align: left;
+      color: #003366;
+      line-height: 1.6;
+      letter-spacing: 0.01em;
+    }
+    .word-box .blank {
+      display: inline-block;
+      min-width: 100px;
+      border-bottom: 3px solid var(--cp);
+      color: #888;
+      font-style: italic;
+      padding: 0 6px;
+      text-align: center;
+    }
 
+    .options { padding: 0 18px; }
+    .option-item {
+      display: block; padding: 12px 16px; margin-bottom: 11px;
+      background: #f0f4f8; color: #333;
+      border: 2px solid #e0e0e0; border-radius: 8px;
+      cursor: pointer; transition: all 0.25s ease;
+      font-size: clamp(0.92em, 2.3vw, 1.05em);
+      font-weight: 500; line-height: 1.5; user-select: none;
+    }
+    .option-item:hover:not(.disabled) {
+      background: #dff0ff; border-color: var(--ch);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .option-item.correct  { background: #4caf50!important; color:#fff!important; border-color:#4caf50!important; }
+    .option-item.incorrect{ background: #f44336!important; color:#fff!important; border-color:#f44336!important; }
+    .option-item.disabled { cursor: not-allowed; opacity: 0.85; }
+    .option-letter { font-weight: 700; margin-right: 6px; color: var(--cs); }
+    .option-item.correct .option-letter,
+    .option-item.incorrect .option-letter { color: #fff; }
+
+    .btn-container { padding: 4px 18px 18px; }
+    .primary-btn {
+      display: block; width: 100%; padding: 13px;
+      color: #fff; border: none; border-radius: 8px;
+      font-size: 1.05em; font-weight: 700; cursor: pointer;
+      transition: all 0.25s ease; text-transform: uppercase;
+      letter-spacing: 1px; background: var(--cp);
+      text-align: center; user-select: none; box-sizing: border-box;
+    }
+    .primary-btn:hover {
+      background: var(--ch); transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .timer-container {
+      background: linear-gradient(135deg, #fff8e1, #ffecb3);
+      padding: 11px 18px; border-top: 2px solid #f39c12;
+    }
+    .timer-text {
+      text-align: center; font-weight: 700;
+      font-size: clamp(0.88em, 2.2vw, 1em);
+      color: #c77a00; margin-bottom: 7px;
+    }
+    .timer-bar-container {
+      background: #f0d0d0; height: 8px; border-radius: 4px; overflow: hidden;
+    }
+    .timer-bar {
+      height: 100%; width: 100%;
+      background: linear-gradient(90deg,#28a745,#ffc107,#dc3545);
+      transition: width 0.1s linear; border-radius: 4px;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.65} }
+    .timer-warning { animation: pulse 0.9s infinite; }
+    .result-screen { padding: 35px 28px; text-align: center; }
+    .result-screen.hidden { display: none; }
+    .result-screen h2 { color: var(--cp); font-size: clamp(1.4em,4vw,1.9em); margin-bottom: 10px; }
+    .result-score {
+      font-size: clamp(2em,6vw,2.8em)!important;
+      font-weight: 800; color: var(--cp)!important; margin: 12px 0!important;
+    }
+    .result-msg { font-size: clamp(1em,2.8vw,1.2em); color:#333; margin:8px 0; }
+    .cat-results { margin: 18px 0; text-align: left; }
+    .cat-results h3 { color: var(--cp); font-size: 0.95em; margin-bottom: 10px; }
+    .cat-row { display:flex; align-items:center; gap:8px; margin:7px 0; }
+    .cat-lbl { flex:1.3; font-size:0.78em; font-weight:600; }
+    .cat-bar-out { flex:2; background:#eee; border-radius:4px; height:10px; }
+    .cat-bar-in { height:100%; border-radius:4px; background:var(--cp); transition:width 0.6s; }
+    .cat-sc { font-weight:700; color:var(--cp); font-size:0.82em; min-width:38px; text-align:right; }
+    .tip-box {
+      background:#e8f5e9; border-left:4px solid #43a047;
+      border-radius:6px; padding:10px 14px; margin:14px 0 4px;
+      font-size:0.82em; color:#2e7d32; text-align:left; line-height:1.5;
+    }
+  </style>
+</head>
+<body>
+<div id="quiz-container">
+
+  <div class="quiz-progress-header">
+    <div class="progress-text" id="progress-text">Pregunta 1 de 20</div>
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+  </div>
+
+  <div id="question-area"></div>
+
+  <div class="timer-container" id="timer-container">
+    <div class="timer-text" id="timer-text">⏱ Tiempo: 60s</div>
+    <div class="timer-bar-container">
+      <div class="timer-bar" id="timer-bar"></div>
+    </div>
+  </div>
+
+  <div class="result-screen hidden" id="result-screen">
+    <h2>🎯 ¡Cuestionario completado!</h2>
+    <p class="result-score" id="final-score"></p>
+    <p class="result-msg" id="final-msg"></p>
+    <div class="cat-results" id="cat-results"></div>
+    <div class="tip-box" id="tip-box"></div>
+    <div class="btn-container" style="padding-top:14px">
+      <div class="primary-btn" id="restart-btn">🔄 Nuevas preguntas (reiniciar)</div>
+    </div>
+  </div>
+ <p style="text-align: center">Creado por Prof. José M. Fernández con Claude Opus 4.7</p>
+</div>
+
+<script>
+(function(){
+  if(window.quizConectoresIniciado) return;
+  window.quizConectoresIniciado = true;
+
+  function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function pick(arr){ return arr[rand(0,arr.length-1)]; }
+  function shuffle(arr){
+    const a=arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function makeOpts(correct, distractors){
+    const cs=String(correct), seen=new Set([cs]), uniq=[];
+    for(const d of distractors){
+      if(d==null) continue;
+      const ds=String(d);
+      if(ds==='undefined' || ds==='') continue;
+      if(!seen.has(ds) && uniq.length<3){ seen.add(ds); uniq.push(ds); }
+    }
+    let attempts=0;
+    while(uniq.length<3 && attempts<30){
+      attempts++;
+      const fake=cs+'·'+attempts;
+      if(!seen.has(fake)){ seen.add(fake); uniq.push(fake); }
+    }
+    while(uniq.length<3){ uniq.push('?'+uniq.length); }
+    const all=shuffle([cs, ...uniq]);
+    const L=['a','b','c','d'];
+    return {
+      opciones: all.map((v,i)=>({valor:L[i], texto:v, letra:L[i].toUpperCase()})),
+      correcta: L[all.indexOf(cs)]
+    };
+  }
+
+  /* ─── BANCOS DE CONECTORES ─── */
+  const C_CAUSA = ['porque','debido a que','ya que','puesto que','dado que','pues'];
+  const C_CONSEC = ['por lo tanto','por consiguiente','en consecuencia','así que','de modo que','por eso'];
+  const C_CONTRA = ['sin embargo','no obstante','pero','en cambio','aun así','aunque'];
+  const C_ADIC = ['además','también','asimismo','igualmente','aparte de eso'];
+  const C_TIEMPO = ['primero','luego','después','finalmente','mientras tanto','a continuación'];
+
+  /* ─── ORACIONES ─── */
+  const O_CAUSA = [
+    {a:'No fui a la fiesta', b:'estaba muy cansado'},
+    {a:'Pedro llegó tarde', b:'había mucho tráfico'},
+    {a:'No comimos en casa', b:'no había nada en la nevera'},
+    {a:'María estudia mucho', b:'quiere ser médica'},
+    {a:'Los niños están felices', b:'es su cumpleaños'},
+    {a:'Compramos paraguas', b:'iba a llover'},
+    {a:'Cancelaron el vuelo', b:'había mucha niebla'}
+  ];
+  const O_CONSEC = [
+    {a:'Llovió todo el día', b:'cancelaron el partido'},
+    {a:'Estudié toda la semana', b:'aprobé el examen'},
+    {a:'No había gasolina', b:'tuvimos que caminar'},
+    {a:'El maestro estaba enfermo', b:'no hubo clase'},
+    {a:'La carretera estaba cerrada', b:'tomamos otro camino'},
+    {a:'Subieron los precios', b:'compramos menos cosas'}
+  ];
+  const O_CONTRA = [
+    {a:'Tenía mucho sueño', b:'seguí trabajando'},
+    {a:'El día estaba lluvioso', b:'salimos al parque'},
+    {a:'Estudió poco', b:'aprobó el examen'},
+    {a:'Era una película mala', b:'la vimos completa'},
+    {a:'Pedro es muy serio', b:'siempre cuenta chistes'}
+  ];
+  const O_ADIC = [
+    {a:'María sabe inglés', b:'habla francés'},
+    {a:'El proyecto es difícil', b:'requiere mucho tiempo'},
+    {a:'La casa es grande', b:'tiene buena ubicación'},
+    {a:'Los estudiantes son inteligentes', b:'son responsables'},
+    {a:'El restaurante tiene buena comida', b:'su servicio es excelente'},
+    {a:'Aprendí matemáticas', b:'aprendí ciencias'}
+  ];
+  const O_TIEMPO = [
+    {fase1:'desayunamos', fase2:'lavamos los platos', fase3:'salimos a caminar'},
+    {fase1:'leímos las instrucciones', fase2:'organizamos los materiales', fase3:'comenzamos el experimento'},
+    {fase1:'estudiamos juntos', fase2:'tomamos un descanso', fase3:'continuamos estudiando'},
+    {fase1:'limpio la casa', fase2:'preparo la comida', fase3:'descanso un rato'},
+    {fase1:'apagamos las luces', fase2:'cerramos las ventanas', fase3:'salimos de casa'}
+  ];
+
+  const SINONIMOS = {
+    'causa': [
+      {a:'porque', b:'ya que'},
+      {a:'porque', b:'debido a que'},
+      {a:'ya que', b:'puesto que'},
+      {a:'porque', b:'dado que'}
+    ],
+    'consec': [
+      {a:'por lo tanto', b:'por consiguiente'},
+      {a:'por lo tanto', b:'en consecuencia'},
+      {a:'así que', b:'de modo que'},
+      {a:'por eso', b:'por lo tanto'}
+    ],
+    'adic': [
+      {a:'además', b:'también'},
+      {a:'además', b:'asimismo'},
+      {a:'también', b:'igualmente'},
+      {a:'asimismo', b:'igualmente'}
+    ]
+  };
+
+  /* ─── CATEGORÍAS ─── */
+  const CC={
+    'Causa':'#1a6ba0',
+    'Consecuencia':'#0e7a60',
+    'Contraste':'#c0522a',
+    'Adición':'#7b2d8b',
+    'Tiempo y secuencia':'#a01c1c'
+  };
+  const CI={
+    'Causa':'🔍',
+    'Consecuencia':'➡️',
+    'Contraste':'⚖️',
+    'Adición':'➕',
+    'Tiempo y secuencia':'🕐'
+  };
+  const TIPS={
+    'Causa':'Consejo: los conectores de causa explican el motivo o razón. Los más comunes son "porque" (informal), "ya que", "puesto que", "debido a que", "dado que" (más formales).',
+    'Consecuencia':'Consejo: los conectores de consecuencia muestran el resultado de algo. Usa "por lo tanto", "en consecuencia", "por consiguiente" en textos formales; "así que" y "por eso" son más informales.',
+    'Contraste':'Consejo: distingue entre "pero" (contraste simple), "sin embargo" (contraste fuerte) y "sino" (corrige una negación previa). "No quiero café SINO té" — aquí no se puede usar "pero".',
+    'Adición':'Consejo: "además" es lo más común. "Asimismo" e "igualmente" son más formales. Todos suman información a lo dicho previamente.',
+    'Tiempo y secuencia':'Consejo: para narrar pasos en orden usa "primero", "luego/después", "a continuación", "finalmente". Estos conectores son esenciales para escribir instrucciones o relatar eventos en orden cronológico.'
+  };
+
+  function oracion(s){ return s.charAt(0).toUpperCase()+s.slice(1)+'.'; }
+
+  /* ─── GENERADORES ─── */
+  const GEN=[
+
+    /* ════ CAUSA ════ */
+
+    /* 1 · Completar oración de causa */
+    ()=>{
+      const o=pick(O_CAUSA);
+      const correct=pick(C_CAUSA);
+      const w1=pick(C_CONSEC);
+      const w2=pick(C_CONTRA);
+      const w3=pick(C_ADIC);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Causa', t:30,
+        q:'¿Qué conector completa correctamente la oración?',
+        math:`${oracion(o.a).slice(0,-1)} <span class="blank">?</span> ${o.b}.`,
+        opciones, correcta };
+    },
+
+    /* 2 · Identificar tipo (causa) */
+    ()=>{
+      const conn=pick(C_CAUSA);
+      const correct='Causa';
+      const opcionesAll=['Consecuencia','Contraste','Adición','Tiempo'];
+      const distractores=shuffle(opcionesAll).slice(0,3);
+      const {opciones,correcta}=makeOpts(correct,distractores);
+      return{ cat:'Causa', t:25,
+        q:`¿Qué tipo de relación expresa el conector <strong>${conn}</strong>?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 3 · Sinónimo de causa */
+    ()=>{
+      const par=pick(SINONIMOS.causa);
+      const correct=par.b;
+      const w1=pick(C_CONSEC);
+      const w2=pick(C_CONTRA);
+      const w3=pick(C_ADIC);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Causa', t:30,
+        q:`¿Cuál de estos conectores es sinónimo de <strong>${par.a}</strong>?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 4 · Identificar conector de causa */
+    ()=>{
+      const correct=pick(C_CAUSA);
+      const w1=pick(C_CONSEC);
+      const w2=pick(C_CONTRA);
+      const w3=pick(C_TIEMPO);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Causa', t:25,
+        q:'¿Cuál de estos conectores expresa CAUSA?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ CONSECUENCIA ════ */
+
+    /* 5 */
+    ()=>{
+      const o=pick(O_CONSEC);
+      const correct=pick(C_CONSEC);
+      const w1=pick(C_CAUSA);
+      const w2=pick(C_CONTRA);
+      const w3=pick(C_ADIC);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Consecuencia', t:30,
+        q:'¿Qué conector completa correctamente la oración?',
+        math:`${oracion(o.a).slice(0,-1)} <span class="blank">?</span> ${o.b}.`,
+        opciones, correcta };
+    },
+
+    /* 6 */
+    ()=>{
+      const conn=pick(C_CONSEC);
+      const correct='Consecuencia';
+      const opcionesAll=['Causa','Contraste','Adición','Tiempo'];
+      const distractores=shuffle(opcionesAll).slice(0,3);
+      const {opciones,correcta}=makeOpts(correct,distractores);
+      return{ cat:'Consecuencia', t:25,
+        q:`¿Qué tipo de relación expresa el conector <strong>${conn}</strong>?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 7 */
+    ()=>{
+      const par=pick(SINONIMOS.consec);
+      const correct=par.b;
+      const w1=pick(C_CAUSA);
+      const w2=pick(C_CONTRA);
+      const w3=pick(C_TIEMPO);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Consecuencia', t:30,
+        q:`¿Cuál de estos conectores es sinónimo de <strong>${par.a}</strong>?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 8 */
+    ()=>{
+      const correct=pick(C_CONSEC);
+      const w1=pick(C_CAUSA);
+      const w2=pick(C_CONTRA);
+      const w3=pick(C_ADIC);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Consecuencia', t:25,
+        q:'¿Cuál de estos conectores expresa CONSECUENCIA?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ CONTRASTE ════ */
+
+    /* 9 */
+    ()=>{
+      const o=pick(O_CONTRA);
+      const correct=pick(C_CONTRA);
+      const w1=pick(C_CAUSA);
+      const w2=pick(C_CONSEC);
+      const w3=pick(C_ADIC);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Contraste', t:30,
+        q:'¿Qué conector completa correctamente la oración?',
+        math:`${oracion(o.a).slice(0,-1)} <span class="blank">?</span> ${o.b}.`,
+        opciones, correcta };
+    },
+
+    /* 10 */
+    ()=>{
+      const conn=pick(C_CONTRA);
+      const correct='Contraste';
+      const opcionesAll=['Causa','Consecuencia','Adición','Tiempo'];
+      const distractores=shuffle(opcionesAll).slice(0,3);
+      const {opciones,correcta}=makeOpts(correct,distractores);
+      return{ cat:'Contraste', t:25,
+        q:`¿Qué tipo de relación expresa el conector <strong>${conn}</strong>?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 11 · "pero" vs "sino" */
+    ()=>{
+      const tipo=rand(0,1);
+      let oracionMath, correct;
+      if(tipo===0){
+        const opciones2=[
+          {a:'No quiero café', b:'té'},
+          {a:'No es alto', b:'mediano'},
+          {a:'No fuimos al cine', b:'al teatro'},
+          {a:'No habla inglés', b:'español'},
+          {a:'No es de Cuba', b:'de Puerto Rico'}
+        ];
+        const o=pick(opciones2);
+        oracionMath=`${oracion(o.a).slice(0,-1)} <span class="blank">?</span> ${o.b}.`;
+        correct='sino';
+      } else {
+        const opciones2=[
+          {a:'Es muy joven', b:'tiene mucha experiencia'},
+          {a:'Llovía fuerte', b:'salimos a pasear'},
+          {a:'Era tarde', b:'aún había gente en la calle'},
+          {a:'Tengo hambre', b:'no quiero comer ahora'}
+        ];
+        const o=pick(opciones2);
+        oracionMath=`${oracion(o.a).slice(0,-1)} <span class="blank">?</span> ${o.b}.`;
+        correct='pero';
+      }
+      const w1 = correct==='sino' ? 'pero' : 'sino';
+      const w2 = 'porque';
+      const w3 = 'además';
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Contraste', t:35,
+        q:'¿Qué conector completa correctamente?',
+        math:oracionMath,
+        opciones, correcta };
+    },
+
+    /* 12 */
+    ()=>{
+      const correct=pick(C_CONTRA);
+      const w1=pick(C_CAUSA);
+      const w2=pick(C_CONSEC);
+      const w3=pick(C_TIEMPO);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Contraste', t:25,
+        q:'¿Cuál de estos conectores expresa CONTRASTE?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ ADICIÓN ════ */
+
+    /* 13 */
+    ()=>{
+      const o=pick(O_ADIC);
+      const correct=pick(C_ADIC);
+      const w1=pick(C_CAUSA);
+      const w2=pick(C_CONSEC);
+      const w3=pick(C_CONTRA);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Adición', t:30,
+        q:'¿Qué conector completa correctamente la oración?',
+        math:`${oracion(o.a).slice(0,-1)} <span class="blank">?</span> ${o.b}.`,
+        opciones, correcta };
+    },
+
+    /* 14 */
+    ()=>{
+      const conn=pick(C_ADIC);
+      const correct='Adición';
+      const opcionesAll=['Causa','Consecuencia','Contraste','Tiempo'];
+      const distractores=shuffle(opcionesAll).slice(0,3);
+      const {opciones,correcta}=makeOpts(correct,distractores);
+      return{ cat:'Adición', t:25,
+        q:`¿Qué tipo de relación expresa el conector <strong>${conn}</strong>?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 15 */
+    ()=>{
+      const par=pick(SINONIMOS.adic);
+      const correct=par.b;
+      const w1=pick(C_CAUSA);
+      const w2=pick(C_CONSEC);
+      const w3=pick(C_TIEMPO);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Adición', t:30,
+        q:`¿Cuál de estos conectores es sinónimo de <strong>${par.a}</strong>?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 16 */
+    ()=>{
+      const correct=pick(C_ADIC);
+      const w1=pick(C_CAUSA);
+      const w2=pick(C_CONSEC);
+      const w3=pick(C_CONTRA);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Adición', t:25,
+        q:'¿Cuál de estos conectores expresa ADICIÓN?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ TIEMPO Y SECUENCIA ════ */
+
+    /* 17 · Inicio de secuencia */
+    ()=>{
+      const o=pick(O_TIEMPO);
+      const inicios=['primero','al principio','para empezar'];
+      const correct=pick(inicios);
+      const w1=pick(C_CAUSA);
+      const w2=pick(C_CONTRA);
+      const w3=pick(C_ADIC);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      const segundoConn=pick(['luego','después','a continuación']);
+      return{ cat:'Tiempo y secuencia', t:30,
+        q:'¿Qué conector inicia correctamente la secuencia?',
+        math:`<span class="blank">?</span> ${o.fase1}, ${segundoConn} ${o.fase2}.`,
+        opciones, correcta };
+    },
+
+    /* 18 · Final de secuencia */
+    ()=>{
+      const o=pick(O_TIEMPO);
+      const finales=['finalmente','al final','por último'];
+      const correct=pick(finales);
+      const w1=pick(C_CAUSA);
+      const w2=pick(C_CONTRA);
+      const w3=pick(C_ADIC);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      const inicio=pick(['Primero','Al principio']);
+      const medio=pick(['luego','después']);
+      return{ cat:'Tiempo y secuencia', t:30,
+        q:'¿Qué conector cierra correctamente la secuencia?',
+        math:`${inicio} ${o.fase1}, ${medio} ${o.fase2}, <span class="blank">?</span> ${o.fase3}.`,
+        opciones, correcta };
+    },
+
+    /* 19 */
+    ()=>{
+      const conn=pick(C_TIEMPO);
+      const correct='Tiempo';
+      const opcionesAll=['Causa','Consecuencia','Contraste','Adición'];
+      const distractores=shuffle(opcionesAll).slice(0,3);
+      const {opciones,correcta}=makeOpts(correct,distractores);
+      return{ cat:'Tiempo y secuencia', t:25,
+        q:`¿Qué tipo de relación expresa el conector <strong>${conn}</strong>?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 20 */
+    ()=>{
+      const correct=pick(C_TIEMPO);
+      const w1=pick(C_CAUSA);
+      const w2=pick(C_CONSEC);
+      const w3=pick(C_CONTRA);
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Tiempo y secuencia', t:25,
+        q:'¿Cuál de estos conectores expresa TIEMPO o SECUENCIA?',
+        math:'',
+        opciones, correcta };
+    }
+
+  ];
+
+  const preguntas=shuffle(GEN.map(g=>g()));
+  const total=preguntas.length;
+  let actual=0, puntos=0, respondida=false, reloj=null, segs=0;
+  const catPts={}, catTot={};
+  preguntas.forEach(p=>{ catTot[p.cat]=(catTot[p.cat]||0)+1; catPts[p.cat]=catPts[p.cat]||0; });
+
+  const qArea=document.getElementById('question-area');
+  const barP=document.getElementById('progress-bar');
+  const txtP=document.getElementById('progress-text');
+
+  function render(i){
+    const p=preguntas[i];
+    const col=CC[p.cat]||'#0089cd';
+    const icon=CI[p.cat]||'📝';
+    const tLabel= p.t<=30?'⚡ Rápida': p.t<=45?'🕐 Media':'⏳ Difícil';
+    const opHtml=p.opciones.map(o=>
+      `<div class="option-item" data-val="${o.valor}" onclick="window.__qClick(this)"><span class="option-letter">${o.letra}.</span>${o.texto}</div>`
+    ).join('');
+    const mathBlock=p.math?`<div class="word-box">${p.math}</div>`:'';
+    const btnLbl=i===total-1?'Ver resultados':'Siguiente ›';
+    qArea.innerHTML=`
+      <div class="question-meta">
+        <span class="cat-badge" style="background:${col}">${icon} ${p.cat}</span>
+        <span class="time-badge">${tLabel} · ${p.t}s</span>
+      </div>
+      <div class="question-header">${p.q}</div>
+      ${mathBlock}
+      <div class="options">${opHtml}</div>
+      <div class="btn-container">
+        <div class="primary-btn" onclick="window.__qNext()">${btnLbl}</div>
+      </div>`;
+    if(barP) barP.style.width=((i+1)/total*100)+'%';
+    if(txtP) txtP.textContent=`Pregunta ${i+1} de ${total}`;
+    iniciarReloj(p.t);
+  }
+
+  window.__qClick=function(el){
+    if(respondida) return;
+    pararReloj(); respondida=true;
+    const p=preguntas[actual];
+    const elegida=el.getAttribute('data-val');
+    if(elegida===p.correcta){
+      el.className='option-item correct disabled';
+      puntos++; catPts[p.cat]++;
+    } else {
+      el.className='option-item incorrect disabled';
+      const ok=qArea.querySelector(`.option-item[data-val="${p.correcta}"]`);
+      if(ok) ok.className='option-item correct disabled';
+    }
+    qArea.querySelectorAll('.option-item').forEach(o=>{
+      if(!o.className.includes('disabled')) o.className+=' disabled';
+    });
+  };
+
+  window.__qNext=function(){
+    pararReloj(); actual++; respondida=false;
+    if(actual<total) render(actual);
+    else mostrarResultados();
+  };
+
+  function iniciarReloj(s){
+    pararReloj(); segs=s; actualizarReloj();
+    reloj=setInterval(()=>{ segs--; actualizarReloj(); if(segs<=0) tiempoAgotado(); },1000);
+  }
+  function pararReloj(){ if(reloj){clearInterval(reloj);reloj=null;} }
+  function actualizarReloj(){
+    const p=preguntas[actual]||{t:60};
+    const tt=document.getElementById('timer-text');
+    const tb=document.getElementById('timer-bar');
+    const tc=document.getElementById('timer-container');
+    if(tt) tt.textContent=`⏱ Tiempo: ${segs}s`;
+    const pct=(segs/p.t)*100;
+    if(tb){
+      tb.style.width=pct+'%';
+      if(pct<=25){ tb.style.background='#dc3545'; if(tc) tc.className='timer-container timer-warning'; }
+      else if(pct<=50){ tb.style.background='linear-gradient(90deg,#ffc107,#dc3545)'; if(tc) tc.className='timer-container'; }
+      else{ tb.style.background='linear-gradient(90deg,#28a745,#ffc107,#dc3545)'; if(tc) tc.className='timer-container'; }
+    }
+  }
+  function tiempoAgotado(){
+    pararReloj(); respondida=true;
+    const p=preguntas[actual];
+    const ok=qArea.querySelector(`.option-item[data-val="${p.correcta}"]`);
+    if(ok) ok.className='option-item correct disabled';
+    qArea.querySelectorAll('.option-item').forEach(o=>{ if(!o.className.includes('disabled')) o.className+=' disabled'; });
+    const tt=document.getElementById('timer-text');
+    if(tt) tt.textContent='⏰ ¡Tiempo agotado!';
+    const tc=document.getElementById('timer-container');
+    if(tc) tc.className='timer-container timer-warning';
+  }
+
+  function mostrarResultados(){
+    pararReloj();
+    qArea.innerHTML='';
+    document.getElementById('timer-container').style.display='none';
+    const pct=Math.round(puntos/total*100);
+    document.getElementById('final-score').textContent=`${puntos} / ${total}  (${pct}%)`;
+    let msg='', emoji='';
+    if(pct>=85){ emoji='🏆'; msg='¡Excelente! Dominas los conectores y transiciones del GED.'; }
+    else if(pct>=70){ emoji='👍'; msg='¡Muy bien! Un poco más de práctica y lo logras.'; }
+    else if(pct>=50){ emoji='💪'; msg='Buen intento. Repasa las categorías en rojo y vuelve a intentarlo.'; }
+    else { emoji='📚'; msg='Sigue practicando. Identifica las categorías débiles y trabaja en ellas primero.'; }
+    document.getElementById('final-msg').textContent=emoji+' '+msg;
+
+    let html='<h3>Resultados por categoría:</h3>';
+    for(const cat of Object.keys(catTot)){
+      const s=catPts[cat]||0, t2=catTot[cat];
+      const p2=Math.round(s/t2*100);
+      const col=CC[cat]||'#0089cd';
+      const barCol=p2>=70?col:'#e53935';
+      html+=`<div class="cat-row">
+        <span class="cat-lbl">${CI[cat]} ${cat}</span>
+        <div class="cat-bar-out"><div class="cat-bar-in" style="width:${p2}%;background:${barCol}"></div></div>
+        <span class="cat-sc">${s}/${t2}</span>
+      </div>`;
+    }
+    document.getElementById('cat-results').innerHTML=html;
+
+    let minCat='', minPct=999;
+    for(const cat of Object.keys(catTot)){
+      const s=catPts[cat]||0, t2=catTot[cat], pp=s/t2;
+      if(pp<minPct){ minPct=pp; minCat=cat; }
+    }
+    document.getElementById('tip-box').textContent=
+      minPct<1 ? (TIPS[minCat]||'') : '✅ ¡Sin categorías con puntuación 0! Sigue practicando para mejorar los tiempos.';
+
+    document.getElementById('result-screen').className='result-screen';
+    document.querySelector('.quiz-progress-header').style.display='none';
+    document.getElementById('restart-btn').onclick=()=>window.location.reload();
+  }
+
+  render(0);
+
+})();
+</script>
+</body>
+</html>
