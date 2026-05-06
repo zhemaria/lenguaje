@@ -1,1 +1,913 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rapidez en acentos y ortografía — GED</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    :root {
+      --cp: #0089cd; --cs: #005f8f; --ch: #00a8fc;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 10px;
+      background: linear-gradient(135deg, #0089cd, #002d4d);
+      display: flex; justify-content: center; align-items: flex-start;
+      min-height: 90vh; flex-direction: column; gap: 10px;
+    }
+    #quiz-container {
+      background: #fff; border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      overflow: hidden; width: clamp(300px, 95%, 820px);
+      margin: 0 auto;
+    }
+    .quiz-progress-header {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      padding: 16px 22px; border-bottom: 3px solid var(--cp);
+    }
+    .progress-text {
+      text-align: center; font-weight: 700;
+      font-size: clamp(0.95em, 2.5vw, 1.1em);
+      color: var(--cp); margin-bottom: 10px;
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .progress-container {
+      background: #e0e0e0; height: 12px; border-radius: 6px;
+      overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .progress-bar {
+      height: 100%; width: 5%;
+      background: linear-gradient(90deg, var(--cp), var(--ch));
+      transition: width 0.5s cubic-bezier(0.4,0,0.2,1); border-radius: 6px;
+    }
+    .question-meta {
+      display: flex; align-items: center; justify-content: center;
+      padding: 14px 20px 0; gap: 10px; flex-wrap: wrap;
+    }
+    .cat-badge {
+      padding: 5px 15px; border-radius: 20px;
+      font-size: 0.8em; font-weight: 700; color: #fff;
+      letter-spacing: 0.4px;
+    }
+    .time-badge {
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 0.78em; font-weight: 600;
+      background: #e8f4f8; color: #444;
+      border: 1px solid #ccc;
+    }
+    .question-header {
+      padding: 16px 22px 8px;
+      font-size: clamp(1em, 2.6vw, 1.18em);
+      font-weight: 700; text-align: center;
+      color: #1a1a2e; line-height: 1.55;
+    }
+    .word-box {
+      background: linear-gradient(135deg, #f0f7ff, #e4effc);
+      border: 2px solid var(--cp); border-radius: 10px;
+      margin: 0 22px 14px; padding: 18px 18px;
+      font-size: clamp(1.4em, 4vw, 2em);
+      font-weight: 700; text-align: center;
+      color: #003366;
+      line-height: 1.3;
+      letter-spacing: 0.04em;
+    }
+    .word-box.context {
+      font-size: clamp(1.05em, 2.6vw, 1.2em);
+      letter-spacing: 0.01em;
+      line-height: 1.6;
+    }
+    .word-box .blank {
+      display: inline-block;
+      min-width: 70px;
+      border-bottom: 3px solid var(--cp);
+      color: #888;
+      font-style: italic;
+      padding: 0 6px;
+    }
+    .word-box .highlight {
+      background: #fff59d;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-style: italic;
+    }
 
+    .options { padding: 0 18px; }
+    .option-item {
+      display: block; padding: 12px 16px; margin-bottom: 11px;
+      background: #f0f4f8; color: #333;
+      border: 2px solid #e0e0e0; border-radius: 8px;
+      cursor: pointer; transition: all 0.25s ease;
+      font-size: clamp(0.95em, 2.4vw, 1.1em);
+      font-weight: 600; line-height: 1.4; user-select: none;
+    }
+    .option-item:hover:not(.disabled) {
+      background: #dff0ff; border-color: var(--ch);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .option-item.correct  { background: #4caf50!important; color:#fff!important; border-color:#4caf50!important; }
+    .option-item.incorrect{ background: #f44336!important; color:#fff!important; border-color:#f44336!important; }
+    .option-item.disabled { cursor: not-allowed; opacity: 0.85; }
+    .btn-container { padding: 4px 18px 18px; }
+    .primary-btn {
+      display: block; width: 100%; padding: 13px;
+      color: #fff; border: none; border-radius: 8px;
+      font-size: 1.05em; font-weight: 700; cursor: pointer;
+      transition: all 0.25s ease; text-transform: uppercase;
+      letter-spacing: 1px; background: var(--cp);
+      text-align: center; user-select: none; box-sizing: border-box;
+    }
+    .primary-btn:hover {
+      background: var(--ch); transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .timer-container {
+      background: linear-gradient(135deg, #fff8e1, #ffecb3);
+      padding: 11px 18px; border-top: 2px solid #f39c12;
+    }
+    .timer-text {
+      text-align: center; font-weight: 700;
+      font-size: clamp(0.88em, 2.2vw, 1em);
+      color: #c77a00; margin-bottom: 7px;
+    }
+    .timer-bar-container {
+      background: #f0d0d0; height: 8px; border-radius: 4px; overflow: hidden;
+    }
+    .timer-bar {
+      height: 100%; width: 100%;
+      background: linear-gradient(90deg,#28a745,#ffc107,#dc3545);
+      transition: width 0.1s linear; border-radius: 4px;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.65} }
+    .timer-warning { animation: pulse 0.9s infinite; }
+    .result-screen { padding: 35px 28px; text-align: center; }
+    .result-screen.hidden { display: none; }
+    .result-screen h2 { color: var(--cp); font-size: clamp(1.4em,4vw,1.9em); margin-bottom: 10px; }
+    .result-score {
+      font-size: clamp(2em,6vw,2.8em)!important;
+      font-weight: 800; color: var(--cp)!important; margin: 12px 0!important;
+    }
+    .result-msg { font-size: clamp(1em,2.8vw,1.2em); color:#333; margin:8px 0; }
+    .cat-results { margin: 18px 0; text-align: left; }
+    .cat-results h3 { color: var(--cp); font-size: 0.95em; margin-bottom: 10px; }
+    .cat-row { display:flex; align-items:center; gap:8px; margin:7px 0; }
+    .cat-lbl { flex:1.3; font-size:0.78em; font-weight:600; }
+    .cat-bar-out { flex:2; background:#eee; border-radius:4px; height:10px; }
+    .cat-bar-in { height:100%; border-radius:4px; background:var(--cp); transition:width 0.6s; }
+    .cat-sc { font-weight:700; color:var(--cp); font-size:0.82em; min-width:38px; text-align:right; }
+    .tip-box {
+      background:#e8f5e9; border-left:4px solid #43a047;
+      border-radius:6px; padding:10px 14px; margin:14px 0 4px;
+      font-size:0.82em; color:#2e7d32; text-align:left; line-height:1.5;
+    }
+  </style>
+</head>
+<body>
+<div id="quiz-container">
+
+  <div class="quiz-progress-header">
+    <div class="progress-text" id="progress-text">Pregunta 1 de 20</div>
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+  </div>
+
+  <div id="question-area"></div>
+
+  <div class="timer-container" id="timer-container">
+    <div class="timer-text" id="timer-text">⏱ Tiempo: 60s</div>
+    <div class="timer-bar-container">
+      <div class="timer-bar" id="timer-bar"></div>
+    </div>
+  </div>
+
+  <div class="result-screen hidden" id="result-screen">
+    <h2>🎯 ¡Cuestionario completado!</h2>
+    <p class="result-score" id="final-score"></p>
+    <p class="result-msg" id="final-msg"></p>
+    <div class="cat-results" id="cat-results"></div>
+    <div class="tip-box" id="tip-box"></div>
+    <div class="btn-container" style="padding-top:14px">
+      <div class="primary-btn" id="restart-btn">🔄 Nuevas preguntas (reiniciar)</div>
+    </div>
+  </div>
+ <p style="text-align: center">Creado por Prof. José M. Fernández con Claude Opus 4.7</p>
+</div>
+
+<script>
+(function(){
+  if(window.quizAcentosIniciado) return;
+  window.quizAcentosIniciado = true;
+
+  /* ─── UTILIDADES ─── */
+  function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function pick(arr){ return arr[rand(0,arr.length-1)]; }
+  function shuffle(arr){
+    const a=arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  // Quita tildes de una palabra
+  function sinTilde(w){
+    const map={'á':'a','é':'e','í':'i','ó':'o','ú':'u','Á':'A','É':'E','Í':'I','Ó':'O','Ú':'U'};
+    return w.replace(/[áéíóúÁÉÍÓÚ]/g, m=>map[m]);
+  }
+
+  // Reemplaza tilde aguda por tilde grave (errortipográfico común)
+  function tildeGrave(w){
+    const map={'á':'à','é':'è','í':'ì','ó':'ò','ú':'ù'};
+    return w.replace(/[áéíóú]/g, m=>map[m]);
+  }
+
+  // Mueve la tilde a la primera vocal (incorrecta)
+  function tildeMalPuesta(w){
+    const sin=sinTilde(w);
+    const m=sin.match(/[aeiou]/);
+    if(!m) return w;
+    const idx=m.index;
+    return sin.substring(0,idx)+tildear(sin.charAt(idx))+sin.substring(idx+1);
+  }
+  function tildear(v){
+    return {a:'á',e:'é',i:'í',o:'ó',u:'ú'}[v]||v;
+  }
+
+  /* ─── makeOpts ─── */
+  function makeOpts(correct, distractors){
+    const cs=String(correct), seen=new Set([cs]), uniq=[];
+    for(const d of distractors){
+      if(d==null) continue;
+      const ds=String(d);
+      if(ds==='undefined' || ds==='') continue;
+      if(!seen.has(ds) && uniq.length<3){ seen.add(ds); uniq.push(ds); }
+    }
+    let attempts=0;
+    while(uniq.length<3 && attempts<30){
+      attempts++;
+      const fake=cs+'·'+attempts;                  // fallback, idealmente no llega aquí
+      if(!seen.has(fake)){ seen.add(fake); uniq.push(fake); }
+    }
+    while(uniq.length<3){ uniq.push('?'+uniq.length); }
+    const all=shuffle([cs, ...uniq]);
+    const L=['a','b','c','d'];
+    return {
+      opciones: all.map((v,i)=>({valor:L[i], texto:L[i].toUpperCase()+'. '+v})),
+      correcta: L[all.indexOf(cs)]
+    };
+  }
+
+  /* ─── BANCOS DE PALABRAS ─── */
+
+  // Agudas con tilde (terminan en n, s o vocal)
+  const AGUDAS_TILDE = [
+    'canción','café','sofá','también','jamás','perdón','comió','salió',
+    'oración','ratón','jardín','además','después','capitán','francés',
+    'allí','aquí','así','papá','mamá','bebé','corazón',
+    'compró','vendió','rincón','avión','región','quizás','inglés','país',
+    'compré','escribí','pasé','dejé','volví','llegué','reunió','acción'
+  ];
+
+  // Agudas SIN tilde (terminan en otras consonantes)
+  const AGUDAS_NOTILDE = [
+    'reloj','pared','virtud','doctor','nariz','papel','capaz',
+    'tenedor','mantel','cristal','animal','feliz','amistad',
+    'comer','salir','pensar','estudiar','feroz','tapiz','cantar',
+    'beber','partir','cortar','gritar','hablar','vivir','escribir'
+  ];
+
+  // Graves SIN tilde (terminan en n, s, vocal)
+  const GRAVES_NOTILDE = [
+    'casa','mesa','libro','joven','examen','jueves','problema',
+    'pelota','volumen','origen','imagen','persona','cosas',
+    'bonita','martes','silla','puerta','hombre','mujer','niño',
+    'gato','perro','lunes','viernes','tarde','noche','mañana'
+  ];
+
+  // Graves CON tilde (terminan en otras consonantes)
+  const GRAVES_TILDE = [
+    'árbol','lápiz','fácil','difícil','ángel','mártir','túnel',
+    'álbum','cárcel','débil','móvil','frágil','útil','hábil',
+    'césped','ámbar','azúcar','huésped','líder','sándwich','dócil'
+  ];
+
+  // Esdrújulas (TODAS llevan tilde)
+  const ESDRUJULAS = [
+    'música','teléfono','lámpara','médico','sábado','miércoles',
+    'página','número','simpático','espíritu','época',
+    'lágrima','máquina','rápido','único','América','gramática',
+    'matemáticas','capítulo','pájaro','plástico','república',
+    'América','católico','clásico','plástico','exámenes'
+  ];
+
+  // Sobresdrújulas (TODAS llevan tilde)
+  const SOBRESDRUJULAS = [
+    'dígamelo','fácilmente','rápidamente','difícilmente',
+    'cómpramelo','cuéntamelo','devuélvanselo','prepáramelo',
+    'únicamente','llévatelo','dáselo','ágilmente'
+  ];
+
+  // Pares B/V: [correcta, incorrecta_b/v]
+  const BV_PARES = [
+    ['burro','vurro'],['base','vase'],['viaje','biaje'],
+    ['recibir','recivir'],['escribir','escrivir'],['vivir','bibir'],
+    ['invierno','imbierno'],['ambiente','amviente'],['bombilla','vombilla'],
+    ['envío','embío'],['ventana','bentana'],['vapor','bapor'],
+    ['victoria','bictoria'],['verdura','berdura'],['hombre','honvre'],
+    ['biblioteca','viblioteca'],['abuelo','avuelo'],['abogado','avogado'],
+    ['voy','boy'],['vino','bino'],['volver','bolver'],['vender','bender']
+  ];
+
+  // Reglas explicativas para B/V
+  const BV_REGLAS = [
+    {regla:'Después de m siempre va b', ejemplos:['bombilla','ambiente','hombre','sembrar']},
+    {regla:'Después de n siempre va v', ejemplos:['invierno','envío','enviar','convocar']},
+    {regla:'Verbos terminados en -bir van con b', ejemplos:['recibir','escribir','subir','prohibir']}
+  ];
+
+  // Pares S/C/Z: [correcta, incorrecta]
+  const SCZ_PARES = [
+    ['hacer','haser'],['cocina','cosina'],['decir','desir'],['cinco','sinco'],
+    ['zapato','sapato'],['azúcar','asúcar'],['abrazo','abraso'],
+    ['cabeza','cabesa'],['lazo','laso'],['vez','ves'],['voz','vos'],
+    ['paz','pas'],['raíz','raís'],['feliz','felis'],['cien','sien'],
+    ['ciudad','siudad'],['centavo','sentavo'],['cera','sera']
+  ];
+
+  // Plurales en z → ces
+  const PLURALES_Z = [
+    ['luz','luces'],['voz','voces'],['lápiz','lápices'],['raíz','raíces'],
+    ['vez','veces'],['paz','paces'],['cruz','cruces'],['nuez','nueces'],
+    ['feliz','felices'],['pez','peces'],['tapiz','tapices']
+  ];
+
+  // Palabras CON H (que algunos olvidan)
+  const H_CON = [
+    'haber','hablar','hacer','hijo','hueco','hecho','héroe',
+    'hospital','hierba','hombre','historia','hoja','humano',
+    'hambre','hermano','hueso','hielo','hilo','hogar','huevo',
+    'humo','humedad','horizonte','hierro'
+  ];
+
+  // Palabras SIN H (que algunos añaden por error)
+  const H_SIN = [
+    'amigo','amor','oso','oler','abrir','edificio','oficina',
+    'oír','olor','amistad','ojo','arena','árbol'
+  ];
+
+  /* ─── CATEGORÍAS ─── */
+  const CC={
+    'Acentuación de agudas':'#1a6ba0',
+    'Acentuación de graves':'#0e7a60',
+    'Esdrújulas y sobresdrújulas':'#c0522a',
+    'B y V':'#7b2d8b',
+    'S, C, Z y H':'#a01c1c'
+  };
+  const CI={
+    'Acentuación de agudas':'1️⃣',
+    'Acentuación de graves':'2️⃣',
+    'Esdrújulas y sobresdrújulas':'3️⃣',
+    'B y V':'🅱️',
+    'S, C, Z y H':'🔠'
+  };
+  const TIPS={
+    'Acentuación de agudas':'Consejo: las agudas llevan tilde solo cuando terminan en n, s o vocal. Si termina en otra consonante, NO lleva tilde.',
+    'Acentuación de graves':'Consejo: las graves o llanas llevan tilde solo cuando NO terminan en n, s o vocal (al revés que las agudas).',
+    'Esdrújulas y sobresdrújulas':'Consejo: TODAS las esdrújulas y sobresdrújulas llevan tilde, sin excepción. Es la regla más fácil.',
+    'B y V':'Consejo: después de m siempre va b (bombilla); después de n siempre va v (invierno). Los verbos terminados en -bir van con b (recibir, escribir).',
+    'S, C, Z y H':'Consejo: las palabras terminadas en z forman plural en -ces (luz → luces). La h muda al inicio se memoriza: haber, hacer, hablar, hombre, hijo.'
+  };
+
+  /* ─── GENERADORES (20) ─── */
+  const GEN=[
+
+    /* ════ ACENTUACIÓN DE AGUDAS (4) ════ */
+
+    /* 1 · Aguda con tilde — escritura correcta · 25s */
+    ()=>{
+      const correct=pick(AGUDAS_TILDE);
+      const sin=sinTilde(correct);
+      const dist=new Set([sin]);
+      const correctTildeIdx=correct.search(/[áéíóú]/);
+      for(const m of sin.matchAll(/[aeiou]/g)){
+        const idx=m.index;
+        if(idx===correctTildeIdx) continue;
+        const v=sin.substring(0,idx)+tildear(sin.charAt(idx))+sin.substring(idx+1);
+        if(v!==correct) dist.add(v);
+      }
+      dist.add(tildeGrave(correct));
+      const distArr=[...dist].filter(d=>d!==correct).slice(0,3);
+      const {opciones,correcta}=makeOpts(correct,distArr);
+      return{ cat:'Acentuación de agudas', t:25,
+        q:'¿Cuál es la escritura correcta?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 2 · Aguda SIN tilde — escritura correcta · 25s */
+    ()=>{
+      const correct=pick(AGUDAS_NOTILDE);
+      const dist=new Set();
+      // Tildear cada vocal individualmente
+      for(const m of correct.matchAll(/[aeiou]/g)){
+        const idx=m.index;
+        const v=correct.substring(0,idx)+tildear(correct.charAt(idx))+correct.substring(idx+1);
+        if(v!==correct) dist.add(v);
+      }
+      // Acento grave en la primera vocal
+      const firstV=correct.match(/[aeiou]/);
+      if(firstV){
+        const idx=firstV.index;
+        const graveMap={a:'à',e:'è',i:'ì',o:'ò',u:'ù'};
+        dist.add(correct.substring(0,idx)+graveMap[correct.charAt(idx)]+correct.substring(idx+1));
+      }
+      // Doble tilde
+      dist.add(correct.replace(/[aeiou]/g, m=>tildear(m)));
+      const distArr=[...dist].filter(d=>d!==correct).slice(0,3);
+      const {opciones,correcta}=makeOpts(correct,distArr);
+      return{ cat:'Acentuación de agudas', t:25,
+        q:'¿Cuál es la escritura correcta?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 3 · ¿Por qué lleva tilde una aguda? · 35s */
+    ()=>{
+      const palabra=pick(AGUDAS_TILDE);
+      const correct='Es aguda y termina en n, s o vocal';
+      const w1='Es grave y termina en consonante';
+      const w2='Es esdrújula';
+      const w3='Es aguda y termina en consonante';
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Acentuación de agudas', t:35,
+        q:`¿Por qué la palabra <strong>${palabra}</strong> lleva tilde?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 4 · De 4 palabras agudas, ¿cuál está MAL escrita? · 30s */
+    ()=>{
+      // 1 mal escrita + 3 bien
+      const malBase=pick(AGUDAS_TILDE);
+      const malEscrita=sinTilde(malBase);             // mal porque le falta tilde
+      const buenas=shuffle(AGUDAS_TILDE.filter(w=>w!==malBase)).slice(0,3);
+      const correct=malEscrita;
+      const {opciones,correcta}=makeOpts(correct,buenas);
+      return{ cat:'Acentuación de agudas', t:30,
+        q:'¿Cuál palabra está MAL escrita?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ ACENTUACIÓN DE GRAVES (4) ════ */
+
+    /* 5 · Grave SIN tilde — escritura correcta · 25s */
+    ()=>{
+      const correct=pick(GRAVES_NOTILDE);
+      const dist=new Set();
+      // Tildear cada vocal individualmente
+      for(const m of correct.matchAll(/[aeiou]/g)){
+        const idx=m.index;
+        const v=correct.substring(0,idx)+tildear(correct.charAt(idx))+correct.substring(idx+1);
+        if(v!==correct) dist.add(v);
+      }
+      // Acento grave en la primera vocal (variante incorrecta)
+      const firstV=correct.match(/[aeiou]/);
+      if(firstV){
+        const idx=firstV.index;
+        const graveMap={a:'à',e:'è',i:'ì',o:'ò',u:'ù'};
+        dist.add(correct.substring(0,idx)+graveMap[correct.charAt(idx)]+correct.substring(idx+1));
+      }
+      // Versión con todas las vocales tildeadas (errror grueso)
+      dist.add(correct.replace(/[aeiou]/g, m=>tildear(m)));
+      const distArr=[...dist].filter(d=>d!==correct).slice(0,3);
+      const {opciones,correcta}=makeOpts(correct,distArr);
+      return{ cat:'Acentuación de graves', t:25,
+        q:'¿Cuál es la escritura correcta?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 6 · Grave CON tilde — escritura correcta · 25s */
+    ()=>{
+      const correct=pick(GRAVES_TILDE);
+      const sin=sinTilde(correct);
+      const dist=new Set([sin]);                     // sin tilde
+      // Tilde en cada vocal alternativa (excluyendo la posición correcta)
+      const correctTildeIdx=correct.search(/[áéíóú]/);
+      for(const m of sin.matchAll(/[aeiou]/g)){
+        const idx=m.index;
+        if(idx===correctTildeIdx) continue;          // saltar la posición correcta
+        const v=sin.substring(0,idx)+tildear(sin.charAt(idx))+sin.substring(idx+1);
+        if(v!==correct) dist.add(v);
+      }
+      // Acento grave
+      dist.add(tildeGrave(correct));
+      // Doble tilde
+      dist.add(sin.replace(/[aeiou]/g, m=>tildear(m)));
+      const distArr=[...dist].filter(d=>d!==correct).slice(0,3);
+      const {opciones,correcta}=makeOpts(correct,distArr);
+      return{ cat:'Acentuación de graves', t:25,
+        q:'¿Cuál es la escritura correcta?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 7 · Identificar tipo de palabra · 30s */
+    ()=>{
+      const tipo=rand(1,4);                          // 1=aguda, 2=grave, 3=esdrújula, 4=sobresdrújula
+      let palabra, correct;
+      if(tipo===1){
+        palabra=pick(AGUDAS_TILDE.concat(AGUDAS_NOTILDE));
+        correct='Aguda';
+      } else if(tipo===2){
+        palabra=pick(GRAVES_TILDE.concat(GRAVES_NOTILDE));
+        correct='Grave (o llana)';
+      } else if(tipo===3){
+        palabra=pick(ESDRUJULAS);
+        correct='Esdrújula';
+      } else {
+        palabra=pick(SOBRESDRUJULAS);
+        correct='Sobresdrújula';
+      }
+      const todas=['Aguda','Grave (o llana)','Esdrújula','Sobresdrújula'];
+      const ds=todas.filter(t=>t!==correct);
+      const {opciones,correcta}=makeOpts(correct,ds);
+      return{ cat:'Acentuación de graves', t:30,
+        q:`¿Qué tipo de palabra es <strong>${palabra}</strong>?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 8 · De 4 palabras graves, ¿cuál está MAL escrita? · 30s */
+    ()=>{
+      const malBase=pick(GRAVES_TILDE);
+      const malEscrita=sinTilde(malBase);             // grave que necesita tilde, sin ella
+      const buenas=shuffle(GRAVES_TILDE.filter(w=>w!==malBase)).slice(0,3);
+      const correct=malEscrita;
+      const {opciones,correcta}=makeOpts(correct,buenas);
+      return{ cat:'Acentuación de graves', t:30,
+        q:'¿Cuál palabra está MAL escrita?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ ESDRÚJULAS Y SOBRESDRÚJULAS (4) ════ */
+
+    /* 9 · Esdrújula con tilde — escritura correcta · 25s */
+    ()=>{
+      const correct=pick(ESDRUJULAS);
+      const sin=sinTilde(correct);
+      const dist=new Set([sin]);
+      const correctTildeIdx=correct.search(/[áéíóú]/);
+      for(const m of sin.matchAll(/[aeiou]/g)){
+        const idx=m.index;
+        if(idx===correctTildeIdx) continue;
+        const v=sin.substring(0,idx)+tildear(sin.charAt(idx))+sin.substring(idx+1);
+        if(v!==correct) dist.add(v);
+      }
+      dist.add(tildeGrave(correct));
+      dist.add(sin.replace(/[aeiou]/g, m=>tildear(m)));
+      const distArr=[...dist].filter(d=>d!==correct).slice(0,3);
+      const {opciones,correcta}=makeOpts(correct,distArr);
+      return{ cat:'Esdrújulas y sobresdrújulas', t:25,
+        q:'¿Cuál es la escritura correcta?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 10 · ¿Cuál palabra es esdrújula? · 30s */
+    ()=>{
+      const correct=pick(ESDRUJULAS);
+      const aguda=pick(AGUDAS_TILDE);
+      const grave=pick(GRAVES_TILDE);
+      const grave2=pick(GRAVES_NOTILDE);
+      const {opciones,correcta}=makeOpts(correct,[aguda,grave,grave2]);
+      return{ cat:'Esdrújulas y sobresdrújulas', t:30,
+        q:'¿Cuál de estas palabras es esdrújula?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 11 · De 4 esdrújulas, ¿cuál está MAL escrita? · 30s */
+    ()=>{
+      const malBase=pick(ESDRUJULAS);
+      const malEscrita=sinTilde(malBase);
+      const buenas=shuffle(ESDRUJULAS.filter(w=>w!==malBase)).slice(0,3);
+      const correct=malEscrita;
+      const {opciones,correcta}=makeOpts(correct,buenas);
+      return{ cat:'Esdrújulas y sobresdrújulas', t:30,
+        q:'¿Cuál palabra está MAL escrita? (todas las esdrújulas llevan tilde)',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 12 · Sobresdrújula con tilde · 30s */
+    ()=>{
+      const correct=pick(SOBRESDRUJULAS);
+      const sin=sinTilde(correct);
+      const dist=new Set([sin]);
+      const correctTildeIdx=correct.search(/[áéíóú]/);
+      for(const m of sin.matchAll(/[aeiou]/g)){
+        const idx=m.index;
+        if(idx===correctTildeIdx) continue;
+        const v=sin.substring(0,idx)+tildear(sin.charAt(idx))+sin.substring(idx+1);
+        if(v!==correct) dist.add(v);
+      }
+      dist.add(tildeGrave(correct));
+      const distArr=[...dist].filter(d=>d!==correct).slice(0,3);
+      const {opciones,correcta}=makeOpts(correct,distArr);
+      return{ cat:'Esdrújulas y sobresdrújulas', t:30,
+        q:'¿Cuál es la escritura correcta? (sobresdrújula)',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ B Y V (4) ════ */
+
+    /* 13 · B vs V — escritura correcta · 25s */
+    ()=>{
+      const par=pick(BV_PARES);
+      const correct=par[0];
+      const w1=par[1];                                // versión mal escrita del correct
+      // Dos distractores de OTROS pares, mal escritos
+      const otros=shuffle(BV_PARES.filter(p=>p[0]!==correct)).slice(0,2);
+      const w2=otros[0][1];
+      const w3=otros[1][1];
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'B y V', t:25,
+        q:'¿Cuál es la escritura correcta?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 14 · De 4 palabras, ¿cuál está MAL en B/V? · 30s */
+    ()=>{
+      const par=pick(BV_PARES);
+      const malEscrita=par[1];
+      const buenas=shuffle(BV_PARES.filter(p=>p[0]!==par[0])).slice(0,3).map(p=>p[0]);
+      const correct=malEscrita;
+      const {opciones,correcta}=makeOpts(correct,buenas);
+      return{ cat:'B y V', t:30,
+        q:'¿Cuál palabra está MAL escrita?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 15 · Regla "después de m" / "después de n" · 30s */
+    ()=>{
+      const reglas=[
+        {q:'Después de m siempre va...', correct:'b', distractor:'v', ej:'bombilla'},
+        {q:'Después de n siempre va...', correct:'v', distractor:'b', ej:'invierno'}
+      ];
+      const r=pick(reglas);
+      const correct=r.correct;
+      const w1=r.distractor;
+      const w2='Cualquiera';
+      const w3='Depende del verbo';
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'B y V', t:30,
+        q:`${r.q} (ejemplo: ${r.ej})`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 16 · Verbos terminados en -bir · 30s */
+    ()=>{
+      const verbos=['recibir','escribir','subir','prohibir','exhibir','percibir','concebir'];
+      const correct=pick(verbos);
+      const w1=correct.replace(/b/,'v');              // todos tienen b, garantizado
+      const otros=shuffle(verbos.filter(v=>v!==correct)).slice(0,2);
+      const {opciones,correcta}=makeOpts(correct,[w1,...otros]);
+      return{ cat:'B y V', t:30,
+        q:'¿Cuál es la escritura correcta? (verbos terminados en -bir van con b)',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ S, C, Z y H (4) ════ */
+
+    /* 17 · S/C/Z — escritura correcta · 30s */
+    ()=>{
+      const par=pick(SCZ_PARES);
+      const correct=par[0];
+      const w1=par[1];
+      // Dos distractores de OTROS pares
+      const otros=shuffle(SCZ_PARES.filter(p=>p[0]!==correct)).slice(0,2);
+      const w2=otros[0][1];
+      const w3=otros[1][1];
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'S, C, Z y H', t:30,
+        q:'¿Cuál es la escritura correcta?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 18 · Plural de palabra terminada en z · 25s */
+    ()=>{
+      const par=pick(PLURALES_Z);
+      const sg=par[0], correct=par[1];
+      const w1=sg+'s';                                // luz → luzs (incorrecto)
+      const w2=sg+'es';                               // luz → luzes (incorrecto, lo más común)
+      const w3=sg.slice(0,-1)+'ses';                  // luz → luses (cambio z→s)
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'S, C, Z y H', t:25,
+        q:`¿Cuál es el plural correcto de <strong>${sg}</strong>?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 19 · ¿Lleva H? · 25s */
+    ()=>{
+      const conH=rand(0,1)===1;
+      const palabra=conH?pick(H_CON):pick(H_SIN);
+      const correct=palabra;
+      let w1, w2, w3;
+      if(conH){
+        // Quitar la h
+        w1=palabra.replace(/^h/i,'');
+      } else {
+        // Añadir h
+        w1='h'+palabra;
+      }
+      // Distractores extra (variantes)
+      const otraConH = pick(H_CON);
+      const otraSinH = pick(H_SIN);
+      const distractores = conH ? [w1, otraSinH, 'h'+otraSinH] : [w1, otraConH, otraConH.replace(/^h/,'')];
+      const {opciones,correcta}=makeOpts(correct, distractores);
+      return{ cat:'S, C, Z y H', t:25,
+        q:'¿Cuál es la escritura correcta?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 20 · De 4 palabras, ¿cuál está MAL escrita? (mezcla) · 35s */
+    ()=>{
+      // Tipo de error aleatorio: SCZ, H, o BV
+      const tipo=rand(1,3);
+      let malEscrita, buenas;
+      if(tipo===1){
+        const par=pick(SCZ_PARES);
+        malEscrita=par[1];
+        buenas=shuffle(SCZ_PARES.filter(p=>p[0]!==par[0])).slice(0,3).map(p=>p[0]);
+      } else if(tipo===2){
+        const palabra=pick(H_CON);
+        malEscrita=palabra.replace(/^h/i,'');         // sin h (mal)
+        buenas=shuffle(H_CON.filter(w=>w!==palabra)).slice(0,3);
+      } else {
+        const par=pick(BV_PARES);
+        malEscrita=par[1];
+        buenas=shuffle(BV_PARES.filter(p=>p[0]!==par[0])).slice(0,3).map(p=>p[0]);
+      }
+      const correct=malEscrita;
+      const {opciones,correcta}=makeOpts(correct,buenas);
+      return{ cat:'S, C, Z y H', t:35,
+        q:'¿Cuál palabra está MAL escrita?',
+        math:'',
+        opciones, correcta };
+    }
+
+  ]; // fin GEN
+
+  /* ─── GENERAR Y MEZCLAR PREGUNTAS ─── */
+  const preguntas=shuffle(GEN.map(g=>g()));
+  const total=preguntas.length;
+  let actual=0, puntos=0, respondida=false, reloj=null, segs=0;
+  const catPts={}, catTot={};
+  preguntas.forEach(p=>{ catTot[p.cat]=(catTot[p.cat]||0)+1; catPts[p.cat]=catPts[p.cat]||0; });
+
+  const qArea=document.getElementById('question-area');
+  const barP=document.getElementById('progress-bar');
+  const txtP=document.getElementById('progress-text');
+
+  /* ─── RENDERIZAR PREGUNTA ─── */
+  function render(i){
+    const p=preguntas[i];
+    const col=CC[p.cat]||'#0089cd';
+    const icon=CI[p.cat]||'📝';
+    const tLabel= p.t<=30?'⚡ Rápida': p.t<=45?'🕐 Media':'⏳ Difícil';
+    const opHtml=p.opciones.map(o=>
+      `<div class="option-item" data-val="${o.valor}" onclick="window.__qClick(this)">${o.texto}</div>`
+    ).join('');
+    const mathBlock=p.math?`<div class="word-box${p.math.length>40?' context':''}">${p.math}</div>`:'';
+    const btnLbl=i===total-1?'Ver resultados':'Siguiente ›';
+    qArea.innerHTML=`
+      <div class="question-meta">
+        <span class="cat-badge" style="background:${col}">${icon} ${p.cat}</span>
+        <span class="time-badge">${tLabel} · ${p.t}s</span>
+      </div>
+      <div class="question-header">${p.q}</div>
+      ${mathBlock}
+      <div class="options">${opHtml}</div>
+      <div class="btn-container">
+        <div class="primary-btn" onclick="window.__qNext()">${btnLbl}</div>
+      </div>`;
+    if(barP) barP.style.width=((i+1)/total*100)+'%';
+    if(txtP) txtP.textContent=`Pregunta ${i+1} de ${total}`;
+    iniciarReloj(p.t);
+  }
+
+  window.__qClick=function(el){
+    if(respondida) return;
+    pararReloj(); respondida=true;
+    const p=preguntas[actual];
+    const elegida=el.getAttribute('data-val');
+    if(elegida===p.correcta){
+      el.className='option-item correct disabled';
+      puntos++; catPts[p.cat]++;
+    } else {
+      el.className='option-item incorrect disabled';
+      const ok=qArea.querySelector(`.option-item[data-val="${p.correcta}"]`);
+      if(ok) ok.className='option-item correct disabled';
+    }
+    qArea.querySelectorAll('.option-item').forEach(o=>{
+      if(!o.className.includes('disabled')) o.className+=' disabled';
+    });
+  };
+
+  window.__qNext=function(){
+    pararReloj(); actual++; respondida=false;
+    if(actual<total) render(actual);
+    else mostrarResultados();
+  };
+
+  function iniciarReloj(s){
+    pararReloj(); segs=s; actualizarReloj();
+    reloj=setInterval(()=>{ segs--; actualizarReloj(); if(segs<=0) tiempoAgotado(); },1000);
+  }
+  function pararReloj(){ if(reloj){clearInterval(reloj);reloj=null;} }
+  function actualizarReloj(){
+    const p=preguntas[actual]||{t:60};
+    const tt=document.getElementById('timer-text');
+    const tb=document.getElementById('timer-bar');
+    const tc=document.getElementById('timer-container');
+    if(tt) tt.textContent=`⏱ Tiempo: ${segs}s`;
+    const pct=(segs/p.t)*100;
+    if(tb){
+      tb.style.width=pct+'%';
+      if(pct<=25){ tb.style.background='#dc3545'; if(tc) tc.className='timer-container timer-warning'; }
+      else if(pct<=50){ tb.style.background='linear-gradient(90deg,#ffc107,#dc3545)'; if(tc) tc.className='timer-container'; }
+      else{ tb.style.background='linear-gradient(90deg,#28a745,#ffc107,#dc3545)'; if(tc) tc.className='timer-container'; }
+    }
+  }
+  function tiempoAgotado(){
+    pararReloj(); respondida=true;
+    const p=preguntas[actual];
+    const ok=qArea.querySelector(`.option-item[data-val="${p.correcta}"]`);
+    if(ok) ok.className='option-item correct disabled';
+    qArea.querySelectorAll('.option-item').forEach(o=>{ if(!o.className.includes('disabled')) o.className+=' disabled'; });
+    const tt=document.getElementById('timer-text');
+    if(tt) tt.textContent='⏰ ¡Tiempo agotado!';
+    const tc=document.getElementById('timer-container');
+    if(tc) tc.className='timer-container timer-warning';
+  }
+
+  function mostrarResultados(){
+    pararReloj();
+    qArea.innerHTML='';
+    document.getElementById('timer-container').style.display='none';
+    const pct=Math.round(puntos/total*100);
+    document.getElementById('final-score').textContent=`${puntos} / ${total}  (${pct}%)`;
+    let msg='', emoji='';
+    if(pct>=85){ emoji='🏆'; msg='¡Excelente! Dominas la ortografía del GED. ¡Estás listo!'; }
+    else if(pct>=70){ emoji='👍'; msg='¡Muy bien! Un poco más de práctica y lo logras.'; }
+    else if(pct>=50){ emoji='💪'; msg='Buen intento. Repasa las categorías en rojo y vuelve a intentarlo.'; }
+    else { emoji='📚'; msg='Sigue practicando. Identifica las categorías débiles y trabaja en ellas primero.'; }
+    document.getElementById('final-msg').textContent=emoji+' '+msg;
+
+    let html='<h3>Resultados por categoría:</h3>';
+    for(const cat of Object.keys(catTot)){
+      const s=catPts[cat]||0, t2=catTot[cat];
+      const p2=Math.round(s/t2*100);
+      const col=CC[cat]||'#0089cd';
+      const barCol=p2>=70?col:'#e53935';
+      html+=`<div class="cat-row">
+        <span class="cat-lbl">${CI[cat]} ${cat}</span>
+        <div class="cat-bar-out"><div class="cat-bar-in" style="width:${p2}%;background:${barCol}"></div></div>
+        <span class="cat-sc">${s}/${t2}</span>
+      </div>`;
+    }
+    document.getElementById('cat-results').innerHTML=html;
+
+    let minCat='', minPct=999;
+    for(const cat of Object.keys(catTot)){
+      const s=catPts[cat]||0, t2=catTot[cat], pp=s/t2;
+      if(pp<minPct){ minPct=pp; minCat=cat; }
+    }
+    document.getElementById('tip-box').textContent=
+      minPct<1 ? (TIPS[minCat]||'') : '✅ ¡Sin categorías con puntuación 0! Sigue practicando para mejorar los tiempos.';
+
+    document.getElementById('result-screen').className='result-screen';
+    document.querySelector('.quiz-progress-header').style.display='none';
+    document.getElementById('restart-btn').onclick=()=>window.location.reload();
+  }
+
+  render(0);
+
+})();
+</script>
+</body>
+</html>
