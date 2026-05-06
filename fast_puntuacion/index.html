@@ -1,1 +1,888 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rapidez en puntuación — GED</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    :root {
+      --cp: #0089cd; --cs: #005f8f; --ch: #00a8fc;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 10px;
+      background: linear-gradient(135deg, #0089cd, #002d4d);
+      display: flex; justify-content: center; align-items: flex-start;
+      min-height: 90vh; flex-direction: column; gap: 10px;
+    }
+    #quiz-container {
+      background: #fff; border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      overflow: hidden; width: clamp(300px, 95%, 820px);
+      margin: 0 auto;
+    }
+    .quiz-progress-header {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      padding: 16px 22px; border-bottom: 3px solid var(--cp);
+    }
+    .progress-text {
+      text-align: center; font-weight: 700;
+      font-size: clamp(0.95em, 2.5vw, 1.1em);
+      color: var(--cp); margin-bottom: 10px;
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .progress-container {
+      background: #e0e0e0; height: 12px; border-radius: 6px;
+      overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .progress-bar {
+      height: 100%; width: 5%;
+      background: linear-gradient(90deg, var(--cp), var(--ch));
+      transition: width 0.5s cubic-bezier(0.4,0,0.2,1); border-radius: 6px;
+    }
+    .question-meta {
+      display: flex; align-items: center; justify-content: center;
+      padding: 14px 20px 0; gap: 10px; flex-wrap: wrap;
+    }
+    .cat-badge {
+      padding: 5px 15px; border-radius: 20px;
+      font-size: 0.8em; font-weight: 700; color: #fff;
+      letter-spacing: 0.4px;
+    }
+    .time-badge {
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 0.78em; font-weight: 600;
+      background: #e8f4f8; color: #444;
+      border: 1px solid #ccc;
+    }
+    .question-header {
+      padding: 16px 22px 8px;
+      font-size: clamp(1em, 2.6vw, 1.18em);
+      font-weight: 700; text-align: center;
+      color: #1a1a2e; line-height: 1.55;
+    }
+    .word-box {
+      background: linear-gradient(135deg, #f0f7ff, #e4effc);
+      border: 2px solid var(--cp); border-radius: 10px;
+      margin: 0 22px 14px; padding: 16px 18px;
+      font-size: clamp(1.05em, 2.6vw, 1.15em);
+      font-weight: 500; text-align: left;
+      color: #003366;
+      line-height: 1.6;
+      letter-spacing: 0.01em;
+    }
+    .word-box .blank {
+      display: inline-block;
+      min-width: 30px;
+      border-bottom: 3px solid var(--cp);
+      color: #888;
+      font-style: italic;
+      padding: 0 6px;
+      text-align: center;
+    }
 
+    .options { padding: 0 18px; }
+    .option-item {
+      display: block; padding: 12px 16px; margin-bottom: 11px;
+      background: #f0f4f8; color: #333;
+      border: 2px solid #e0e0e0; border-radius: 8px;
+      cursor: pointer; transition: all 0.25s ease;
+      font-size: clamp(0.92em, 2.3vw, 1.05em);
+      font-weight: 500; line-height: 1.5; user-select: none;
+    }
+    .option-item:hover:not(.disabled) {
+      background: #dff0ff; border-color: var(--ch);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .option-item.correct  { background: #4caf50!important; color:#fff!important; border-color:#4caf50!important; }
+    .option-item.incorrect{ background: #f44336!important; color:#fff!important; border-color:#f44336!important; }
+    .option-item.disabled { cursor: not-allowed; opacity: 0.85; }
+    .option-letter { font-weight: 700; margin-right: 6px; color: var(--cs); }
+    .option-item.correct .option-letter,
+    .option-item.incorrect .option-letter { color: #fff; }
+
+    .btn-container { padding: 4px 18px 18px; }
+    .primary-btn {
+      display: block; width: 100%; padding: 13px;
+      color: #fff; border: none; border-radius: 8px;
+      font-size: 1.05em; font-weight: 700; cursor: pointer;
+      transition: all 0.25s ease; text-transform: uppercase;
+      letter-spacing: 1px; background: var(--cp);
+      text-align: center; user-select: none; box-sizing: border-box;
+    }
+    .primary-btn:hover {
+      background: var(--ch); transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .timer-container {
+      background: linear-gradient(135deg, #fff8e1, #ffecb3);
+      padding: 11px 18px; border-top: 2px solid #f39c12;
+    }
+    .timer-text {
+      text-align: center; font-weight: 700;
+      font-size: clamp(0.88em, 2.2vw, 1em);
+      color: #c77a00; margin-bottom: 7px;
+    }
+    .timer-bar-container {
+      background: #f0d0d0; height: 8px; border-radius: 4px; overflow: hidden;
+    }
+    .timer-bar {
+      height: 100%; width: 100%;
+      background: linear-gradient(90deg,#28a745,#ffc107,#dc3545);
+      transition: width 0.1s linear; border-radius: 4px;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.65} }
+    .timer-warning { animation: pulse 0.9s infinite; }
+    .result-screen { padding: 35px 28px; text-align: center; }
+    .result-screen.hidden { display: none; }
+    .result-screen h2 { color: var(--cp); font-size: clamp(1.4em,4vw,1.9em); margin-bottom: 10px; }
+    .result-score {
+      font-size: clamp(2em,6vw,2.8em)!important;
+      font-weight: 800; color: var(--cp)!important; margin: 12px 0!important;
+    }
+    .result-msg { font-size: clamp(1em,2.8vw,1.2em); color:#333; margin:8px 0; }
+    .cat-results { margin: 18px 0; text-align: left; }
+    .cat-results h3 { color: var(--cp); font-size: 0.95em; margin-bottom: 10px; }
+    .cat-row { display:flex; align-items:center; gap:8px; margin:7px 0; }
+    .cat-lbl { flex:1.3; font-size:0.78em; font-weight:600; }
+    .cat-bar-out { flex:2; background:#eee; border-radius:4px; height:10px; }
+    .cat-bar-in { height:100%; border-radius:4px; background:var(--cp); transition:width 0.6s; }
+    .cat-sc { font-weight:700; color:var(--cp); font-size:0.82em; min-width:38px; text-align:right; }
+    .tip-box {
+      background:#e8f5e9; border-left:4px solid #43a047;
+      border-radius:6px; padding:10px 14px; margin:14px 0 4px;
+      font-size:0.82em; color:#2e7d32; text-align:left; line-height:1.5;
+    }
+  </style>
+</head>
+<body>
+<div id="quiz-container">
+
+  <div class="quiz-progress-header">
+    <div class="progress-text" id="progress-text">Pregunta 1 de 20</div>
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+  </div>
+
+  <div id="question-area"></div>
+
+  <div class="timer-container" id="timer-container">
+    <div class="timer-text" id="timer-text">⏱ Tiempo: 60s</div>
+    <div class="timer-bar-container">
+      <div class="timer-bar" id="timer-bar"></div>
+    </div>
+  </div>
+
+  <div class="result-screen hidden" id="result-screen">
+    <h2>🎯 ¡Cuestionario completado!</h2>
+    <p class="result-score" id="final-score"></p>
+    <p class="result-msg" id="final-msg"></p>
+    <div class="cat-results" id="cat-results"></div>
+    <div class="tip-box" id="tip-box"></div>
+    <div class="btn-container" style="padding-top:14px">
+      <div class="primary-btn" id="restart-btn">🔄 Nuevas preguntas (reiniciar)</div>
+    </div>
+  </div>
+ <p style="text-align: center">Creado por Prof. José M. Fernández con Claude Opus 4.7</p>
+</div>
+
+<script>
+(function(){
+  if(window.quizPuntuacionIniciado) return;
+  window.quizPuntuacionIniciado = true;
+
+  /* ─── UTILIDADES ─── */
+  function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function pick(arr){ return arr[rand(0,arr.length-1)]; }
+  function shuffle(arr){
+    const a=arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  /* ─── makeOpts ─── */
+  function makeOpts(correct, distractors){
+    const cs=String(correct), seen=new Set([cs]), uniq=[];
+    for(const d of distractors){
+      if(d==null) continue;
+      const ds=String(d);
+      if(ds==='undefined' || ds==='') continue;
+      if(!seen.has(ds) && uniq.length<3){ seen.add(ds); uniq.push(ds); }
+    }
+    let attempts=0;
+    while(uniq.length<3 && attempts<30){
+      attempts++;
+      const fake=cs+'·'+attempts;
+      if(!seen.has(fake)){ seen.add(fake); uniq.push(fake); }
+    }
+    while(uniq.length<3){ uniq.push('?'+uniq.length); }
+    const all=shuffle([cs, ...uniq]);
+    const L=['a','b','c','d'];
+    return {
+      opciones: all.map((v,i)=>({valor:L[i], texto:v, letra:L[i].toUpperCase()})),
+      correcta: L[all.indexOf(cs)]
+    };
+  }
+
+  /* ─── BANCOS DE PLANTILLAS ─── */
+
+  // Enumeraciones (3 elementos): "antes elem1, elem2 y elem3 después."
+  const ENUM = [
+    {a:'En la cocina hay', i:['arroz','frijoles','plátanos'], b:''},
+    {a:'Compré', i:['libros','cuadernos','lápices'], b:' para la escuela'},
+    {a:'Asistieron', i:['Juan','María','Pedro'], b:' a la reunión'},
+    {a:'Mis pasatiempos son', i:['leer','correr','cocinar'], b:''},
+    {a:'El menú incluye', i:['sopa','ensalada','postre'], b:''},
+    {a:'En la maleta llevo', i:['ropa','zapatos','un libro'], b:''},
+    {a:'Estudio', i:['matemáticas','ciencias','lenguaje'], b:''},
+    {a:'Necesito comprar', i:['leche','pan','huevos'], b:''}
+  ];
+
+  // Vocativos: "Vocativo, resto de oración."
+  const VOCATIVOS = [
+    {n:'María', f:'ven a la mesa'},
+    {n:'Pedro', f:'¿qué piensas tú?'},
+    {n:'Hijo', f:'es hora de dormir'},
+    {n:'Doctor', f:'mi madre se siente mal'},
+    {n:'Profesor', f:'tengo una pregunta'},
+    {n:'Amigos', f:'los veré mañana'},
+    {n:'Carlos', f:'apaga la luz al salir'}
+  ];
+
+  // Incisos: "principio, inciso, final."
+  const INCISOS = [
+    {a:'Mi hermano', m:'el mayor', b:'vive en Chicago'},
+    {a:'Cuba', m:'una isla del Caribe', b:'tiene clima tropical'},
+    {a:'Mi abuela', m:'que tiene 80 años', b:'todavía cocina ella misma'},
+    {a:'El presidente', m:'según las noticias', b:'viajará el lunes'},
+    {a:'María', m:'la hermana de Juan', b:'estudia medicina'},
+    {a:'Ese libro', m:'el que te presté', b:'es muy interesante'}
+  ];
+
+  // Sujeto-verbo (no debe llevar coma entre ellos)
+  const SUJ_VERB = [
+    {s:'Mi hermano', v:'come pizza los viernes'},
+    {s:'La maestra de español', v:'es muy paciente'},
+    {s:'Los estudiantes que llegaron tarde', v:'perdieron el examen'},
+    {s:'El gato de mi vecina', v:'duerme todo el día'},
+    {s:'Las matemáticas', v:'son mi materia favorita'},
+    {s:'Mi mejor amigo', v:'trabaja en un hospital'}
+  ];
+
+  // Cláusulas independientes (para punto y coma)
+  const CLAUSULAS = [
+    {a:'Estudié toda la noche', b:'aún no me siento preparado'},
+    {a:'Llegamos temprano al teatro', b:'no había mucho público'},
+    {a:'Hace frío en la calle', b:'es mejor quedarse en casa'},
+    {a:'Mi padre cocina los domingos', b:'mi madre cocina los sábados'},
+    {a:'No tenía dinero', b:'tampoco tenía ganas de salir'},
+    {a:'Llovió mucho ayer', b:'hoy está despejado'}
+  ];
+
+  // Conectores que normalmente llevan punto y coma antes
+  const CONECTORES = [
+    {a:'Estudié toda la semana', conn:'sin embargo', b:'no aprobé el examen'},
+    {a:'Llegué muy temprano', conn:'por lo tanto', b:'tuve que esperar'},
+    {a:'Hacía mucho calor', conn:'no obstante', b:'salimos a caminar'},
+    {a:'No me gusta el café', conn:'en cambio', b:'tomo té todas las mañanas'},
+    {a:'Llegamos tarde', conn:'por consiguiente', b:'perdimos el avión'},
+    {a:'No estudió', conn:'sin embargo', b:'sacó buena nota'}
+  ];
+
+  // Enumeraciones con dos puntos (lista anunciada)
+  const DOS_PUNTOS_LISTA = [
+    {a:'Necesito tres cosas', i:['paciencia','tiempo','dinero']},
+    {a:'En la mochila llevo lo esencial', i:['libros','cuadernos','lápices']},
+    {a:'Compré varias frutas', i:['manzanas','peras','uvas']},
+    {a:'Tres son los ingredientes', i:['harina','huevos','azúcar']},
+    {a:'Visité estas ciudades', i:['Madrid','París','Roma']}
+  ];
+
+  // Saludos formales
+  const SALUDOS = [
+    'Estimado profesor',
+    'Querida amiga',
+    'Distinguido cliente',
+    'Estimada doctora',
+    'Apreciado señor'
+  ];
+
+  // Citas textuales
+  const CITAS = [
+    {q:'Mi madre siempre decía', c:'la paciencia es una virtud'},
+    {q:'El profesor afirmó', c:'el examen será el lunes'},
+    {q:'Como dijo Cervantes', c:'la libertad es uno de los más preciados dones'},
+    {q:'María le respondió', c:'mañana iré a tu casa'},
+    {q:'El médico advirtió', c:'descanse al menos una semana'}
+  ];
+
+  // Oraciones interrogativas
+  const INTERROG = [
+    'Cómo te llamas',
+    'Dónde vives ahora',
+    'Cuántos años tienes',
+    'Qué hora es',
+    'Quién llegó primero',
+    'Por qué no viniste ayer',
+    'Cuándo regresas a casa'
+  ];
+
+  // Oraciones exclamativas
+  const EXCLAM = [
+    'Qué hermoso día',
+    'No puedo creerlo',
+    'Cuidado con el escalón',
+    'Felicidades por tu cumpleaños',
+    'Qué frío hace hoy',
+    'Vaya sorpresa',
+    'Bravo por tu logro'
+  ];
+
+  // Aclaraciones para paréntesis
+  const ACLARACIONES = [
+    {a:'La Segunda Guerra Mundial', m:'1939-1945', b:'cambió el mundo'},
+    {a:'Habana', m:'capital de Cuba', b:'tiene mucha historia'},
+    {a:'El Quijote', m:'obra de Cervantes', b:'es un clásico universal'},
+    {a:'El sol', m:'una estrella', b:'es el centro de nuestro sistema'},
+    {a:'Mi tío', m:'que vive en México', b:'vendrá de visita'}
+  ];
+
+  // Títulos para comillas
+  const TITULOS = [
+    {ant:'He leído el libro', t:'Cien años de soledad', des:'tres veces'},
+    {ant:'Mi canción favorita es', t:'Imagine', des:'de John Lennon'},
+    {ant:'Vimos la película', t:'Coco', des:'en familia'},
+    {ant:'Aprendí mucho con el cuento', t:'El llano en llamas', des:''},
+    {ant:'Te recomiendo el artículo', t:'La salud mental', des:'que salió ayer'}
+  ];
+
+  /* ─── CATEGORÍAS ─── */
+  const CC={
+    'Coma':'#1a6ba0',
+    'Punto y coma':'#0e7a60',
+    'Dos puntos':'#c0522a',
+    'Interrogación y exclamación':'#7b2d8b',
+    'Comillas y paréntesis':'#a01c1c'
+  };
+  const CI={
+    'Coma':',',
+    'Punto y coma':';',
+    'Dos puntos':':',
+    'Interrogación y exclamación':'¿!',
+    'Comillas y paréntesis':'""'
+  };
+  const TIPS={
+    'Coma':'Consejo: la coma separa elementos en enumeraciones, vocativos e incisos. NO se pone coma entre el sujeto y el verbo, ni antes de "y" cuando solo hay dos elementos.',
+    'Punto y coma':'Consejo: el punto y coma separa cláusulas independientes con relación cercana. Va antes de conectores como "sin embargo", "por lo tanto", "no obstante".',
+    'Dos puntos':'Consejo: los dos puntos anuncian una enumeración, una cita textual o una explicación. También se usan en saludos formales: "Estimado profesor:".',
+    'Interrogación y exclamación':'Consejo: en español SIEMPRE se usan los signos de apertura (¿ ¡) además de los de cierre. No se omiten como en inglés.',
+    'Comillas y paréntesis':'Consejo: las comillas se usan para citas textuales y títulos. Los paréntesis encierran aclaraciones, fechas o información adicional que no es esencial.'
+  };
+
+  /* ─── HELPERS ─── */
+  // Construye la oración con dos cláusulas (con primera mayúscula y punto final)
+  function oracion(s){ return s.charAt(0).toUpperCase()+s.slice(1)+'.'; }
+
+  /* ─── GENERADORES (20) ─── */
+  const GEN=[
+
+    /* ════ COMA (4) ════ */
+
+    /* 1 · Coma en enumeraciones · 35s */
+    ()=>{
+      const t=pick(ENUM);
+      const i=t.i;
+      const correct=oracion(`${t.a} ${i[0]}, ${i[1]} y ${i[2]}${t.b}`);
+      const w1=oracion(`${t.a} ${i[0]} ${i[1]} y ${i[2]}${t.b}`);                        // sin coma
+      const w2=oracion(`${t.a} ${i[0]}, ${i[1]}, y ${i[2]}${t.b}`);                      // coma antes de "y"
+      const w3=oracion(`${t.a} ${i[0]}: ${i[1]} y ${i[2]}${t.b}`);                       // dos puntos en lugar de coma
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Coma', t:35,
+        q:'Elige la versión correctamente puntuada:',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 2 · Coma vocativa · 30s */
+    ()=>{
+      const v=pick(VOCATIVOS);
+      const correct=oracion(`${v.n}, ${v.f}`);
+      const w1=oracion(`${v.n} ${v.f}`);                                                  // sin coma
+      const w2=oracion(`${v.n}: ${v.f}`);                                                 // dos puntos
+      const w3=oracion(`${v.n}; ${v.f}`);                                                 // punto y coma
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Coma', t:30,
+        q:'Elige la versión correctamente puntuada (vocativo):',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 3 · Coma de inciso · 35s */
+    ()=>{
+      const x=pick(INCISOS);
+      const correct=oracion(`${x.a}, ${x.m}, ${x.b}`);
+      const w1=oracion(`${x.a} ${x.m} ${x.b}`);                                           // sin comas
+      const w2=oracion(`${x.a}, ${x.m} ${x.b}`);                                          // solo una coma
+      const w3=oracion(`${x.a} ${x.m}, ${x.b}`);                                          // solo la otra
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Coma', t:35,
+        q:'Elige la versión correctamente puntuada (inciso):',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 4 · Identificar coma mal usada (entre sujeto y verbo) · 35s */
+    ()=>{
+      const sv=pick(SUJ_VERB);
+      const malEscrita=oracion(`${sv.s}, ${sv.v}`);                                       // ¡coma incorrecta!
+      const buenas=shuffle(SUJ_VERB.filter(x=>x.s!==sv.s)).slice(0,3).map(x=>oracion(`${x.s} ${x.v}`));
+      const {opciones,correcta}=makeOpts(malEscrita,buenas);
+      return{ cat:'Coma', t:35,
+        q:'¿Cuál oración tiene una coma MAL usada?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ PUNTO Y COMA (4) ════ */
+
+    /* 5 · Separar cláusulas con punto y coma · 40s */
+    ()=>{
+      const c=pick(CLAUSULAS);
+      const correct=`${oracion(c.a).slice(0,-1)}; ${c.b}.`;
+      const w1=`${oracion(c.a).slice(0,-1)}, ${c.b}.`;                                    // coma (incorrecta entre cláusulas)
+      const w2=`${oracion(c.a)} ${c.b}.`;                                                 // sin signo
+      const w3=`${oracion(c.a).slice(0,-1)}: ${c.b}.`;                                    // dos puntos
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Punto y coma', t:40,
+        q:'Elige la versión correctamente puntuada:',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 6 · Antes de conector (sin embargo, por lo tanto) · 35s */
+    ()=>{
+      const c=pick(CONECTORES);
+      const correct=`${oracion(c.a).slice(0,-1)}; ${c.conn}, ${c.b}.`;
+      const w1=`${oracion(c.a).slice(0,-1)}, ${c.conn}, ${c.b}.`;                          // coma (común pero incorrecto)
+      const w2=`${oracion(c.a)} ${c.conn} ${c.b}.`;                                        // sin signos
+      const w3=`${oracion(c.a).slice(0,-1)}: ${c.conn}, ${c.b}.`;                          // dos puntos
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Punto y coma', t:35,
+        q:`Elige la versión correctamente puntuada (con "${c.conn}"):`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 7 · ¿Qué signo va aquí? Punto y coma vs coma · 35s */
+    ()=>{
+      const tipo=rand(0,1);
+      let oracionTexto, correct, w1;
+      if(tipo===0){
+        // Caso punto y coma (cláusulas independientes)
+        const c=pick(CLAUSULAS);
+        oracionTexto=`${c.a}<span class="blank">?</span> ${c.b}.`;
+        correct=';';
+        w1=',';
+      } else {
+        // Caso coma (vocativo o enumeración)
+        const v=pick(VOCATIVOS);
+        oracionTexto=`${v.n}<span class="blank">?</span> ${v.f}.`;
+        correct=',';
+        w1=';';
+      }
+      const w2=':';
+      const w3='.';
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Punto y coma', t:35,
+        q:'¿Qué signo de puntuación va en el espacio?',
+        math:oracionTexto,
+        opciones, correcta };
+    },
+
+    /* 8 · Identificar uso correcto del punto y coma · 35s */
+    ()=>{
+      // Correcta: cláusulas con conector
+      const c=pick(CONECTORES);
+      const correct=`${oracion(c.a).slice(0,-1)}; ${c.conn}, ${c.b}.`;
+      // Distractores: punto y coma mal usado
+      const v=pick(VOCATIVOS);
+      const w1=`${v.n}; ${v.f}.`;                                                          // punto y coma con vocativo (mal)
+      const e=pick(ENUM);
+      const w2=`${e.a} ${e.i[0]}; ${e.i[1]} y ${e.i[2]}${e.b}.`;                          // p.y.c. en enumeración simple (mal)
+      const sv=pick(SUJ_VERB);
+      const w3=`${sv.s}; ${sv.v}.`;                                                        // p.y.c. entre sujeto y verbo (mal)
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Punto y coma', t:35,
+        q:'¿Cuál oración usa el punto y coma CORRECTAMENTE?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ DOS PUNTOS (4) ════ */
+
+    /* 9 · Antes de enumeración · 30s */
+    ()=>{
+      const t=pick(DOS_PUNTOS_LISTA);
+      const i=t.i;
+      const correct=`${t.a}: ${i[0]}, ${i[1]} y ${i[2]}.`;
+      const w1=`${t.a}, ${i[0]}, ${i[1]} y ${i[2]}.`;                                      // coma en lugar de :
+      const w2=`${t.a}; ${i[0]}, ${i[1]} y ${i[2]}.`;                                      // p.y.c. en lugar de :
+      const w3=`${t.a} ${i[0]}, ${i[1]} y ${i[2]}.`;                                       // sin signo
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Dos puntos', t:30,
+        q:'Elige la versión correctamente puntuada:',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 10 · En saludos formales · 25s */
+    ()=>{
+      const s=pick(SALUDOS);
+      const correct=`${s}:`;
+      const w1=`${s},`;                                                                    // coma (en español es incorrecto)
+      const w2=`${s};`;                                                                    // p.y.c.
+      const w3=`${s}.`;                                                                    // punto
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Dos puntos', t:25,
+        q:'Elige el saludo formal correctamente puntuado:',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 11 · Antes de cita textual · 30s */
+    ()=>{
+      const c=pick(CITAS);
+      const correct=`${c.q}: "${c.c.charAt(0).toUpperCase()+c.c.slice(1)}".`;
+      const w1=`${c.q}, "${c.c.charAt(0).toUpperCase()+c.c.slice(1)}".`;                   // coma
+      const w2=`${c.q}; "${c.c.charAt(0).toUpperCase()+c.c.slice(1)}".`;                   // p.y.c.
+      const w3=`${c.q} "${c.c.charAt(0).toUpperCase()+c.c.slice(1)}".`;                    // sin signo
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Dos puntos', t:30,
+        q:'Elige la versión correctamente puntuada (cita textual):',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 12 · Identificar uso correcto de dos puntos · 35s */
+    ()=>{
+      // Correcta: dos puntos antes de enumeración
+      const t=pick(DOS_PUNTOS_LISTA);
+      const correct=`${t.a}: ${t.i[0]}, ${t.i[1]} y ${t.i[2]}.`;
+      // Distractores: dos puntos mal usado
+      const sv=pick(SUJ_VERB);
+      const w1=`${sv.s}: ${sv.v}.`;                                                        // entre sujeto y verbo (mal)
+      const v=pick(VOCATIVOS.filter(x=>!x.f.includes('?')));                               // evitar vocativos con interrogación
+      const w2=`${v.n}: ${v.f}.`;                                                          // con vocativo (mal)
+      const c=pick(CLAUSULAS);
+      const w3=`${c.a}: pero ${c.b}.`;                                                     // antes de conector (mal)
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Dos puntos', t:35,
+        q:'¿Cuál oración usa los dos puntos CORRECTAMENTE?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ INTERROGACIÓN Y EXCLAMACIÓN (4) ════ */
+
+    /* 13 · Apertura del signo de interrogación · 25s */
+    ()=>{
+      const o=pick(INTERROG);
+      const correct=`¿${o}?`;
+      const w1=`${o}?`;                                                                    // sin apertura (estilo inglés)
+      const w2=`¿${o}.`;                                                                   // cierra con punto
+      const w3=`${o}.`;                                                                    // sin signos
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Interrogación y exclamación', t:25,
+        q:'Elige la versión correctamente puntuada:',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 14 · Apertura del signo de exclamación · 25s */
+    ()=>{
+      const o=pick(EXCLAM);
+      const correct=`¡${o}!`;
+      const w1=`${o}!`;                                                                    // sin apertura
+      const w2=`¡${o}.`;                                                                   // cierra con punto
+      const w3=`${o}.`;                                                                    // sin signos
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Interrogación y exclamación', t:25,
+        q:'Elige la versión correctamente puntuada:',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 15 · ¿Qué signos faltan? · 30s */
+    ()=>{
+      const tipo=rand(0,1);
+      let oracionTexto, correct;
+      if(tipo===0){
+        const o=pick(INTERROG);
+        oracionTexto=`<span class="blank">?</span>${o}<span class="blank">?</span>`;
+        correct='¿ y ?';
+      } else {
+        const o=pick(EXCLAM);
+        oracionTexto=`<span class="blank">?</span>${o}<span class="blank">?</span>`;
+        correct='¡ y !';
+      }
+      const w1=correct==='¿ y ?'?'¿ y .':'¡ y .';
+      const w2=correct==='¿ y ?'?'¡ y !':'¿ y ?';
+      const w3=correct==='¿ y ?'?'(nada) y ?':'(nada) y !';
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Interrogación y exclamación', t:30,
+        q:'¿Qué signos faltan en los espacios?',
+        math:oracionTexto,
+        opciones, correcta };
+    },
+
+    /* 16 · Identificar oración mal puntuada (interrog/exclam) · 30s */
+    ()=>{
+      // 1 mal puntuada (sin apertura) + 3 bien puntuadas
+      const tipo=rand(0,1);
+      let malEscrita, buenas;
+      if(tipo===0){
+        const o=pick(INTERROG);
+        malEscrita=`${o}?`;                                                                // sin apertura
+        buenas=shuffle(INTERROG.filter(x=>x!==o)).slice(0,3).map(x=>`¿${x}?`);
+      } else {
+        const o=pick(EXCLAM);
+        malEscrita=`${o}!`;                                                                // sin apertura
+        buenas=shuffle(EXCLAM.filter(x=>x!==o)).slice(0,3).map(x=>`¡${x}!`);
+      }
+      const {opciones,correcta}=makeOpts(malEscrita,buenas);
+      return{ cat:'Interrogación y exclamación', t:30,
+        q:'¿Cuál oración está MAL puntuada?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ COMILLAS Y PARÉNTESIS (4) ════ */
+
+    /* 17 · Comillas para cita textual · 30s */
+    ()=>{
+      const c=pick(CITAS);
+      const correct=`${c.q}: "${c.c.charAt(0).toUpperCase()+c.c.slice(1)}".`;
+      const w1=`${c.q}: ${c.c.charAt(0).toUpperCase()+c.c.slice(1)}.`;                     // sin comillas
+      const w2=`${c.q}: '${c.c.charAt(0).toUpperCase()+c.c.slice(1)}'.`;                   // comillas simples
+      const w3=`${c.q}: (${c.c.charAt(0).toUpperCase()+c.c.slice(1)}).`;                   // paréntesis (mal)
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Comillas y paréntesis', t:30,
+        q:'Elige la versión correctamente puntuada (cita textual):',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 18 · Comillas para títulos · 30s */
+    ()=>{
+      const t=pick(TITULOS);
+      const fin=t.des?` ${t.des}`:'';
+      const correct=`${t.ant} "${t.t}"${fin}.`;
+      const w1=`${t.ant} ${t.t}${fin}.`;                                                   // sin comillas
+      const w2=`${t.ant} (${t.t})${fin}.`;                                                 // paréntesis (mal)
+      const w3=`${t.ant}: ${t.t}${fin}.`;                                                  // dos puntos
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Comillas y paréntesis', t:30,
+        q:'Elige la versión correctamente puntuada (título):',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 19 · Paréntesis para aclaración · 30s */
+    ()=>{
+      const x=pick(ACLARACIONES);
+      const correct=`${x.a} (${x.m}) ${x.b}.`;
+      const w1=`${x.a}, ${x.m} ${x.b}.`;                                                   // coma sin cerrar inciso (mal)
+      const w2=`${x.a} "${x.m}" ${x.b}.`;                                                  // comillas (mal para aclaración)
+      const w3=`${x.a}: ${x.m}: ${x.b}.`;                                                  // dos puntos doble (mal)
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Comillas y paréntesis', t:30,
+        q:'Elige la versión que usa paréntesis correctamente:',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 20 · Identificar oración mal puntuada (mezcla) · 40s */
+    ()=>{
+      // 1 mal puntuada de cualquier tipo + 3 bien puntuadas (mezcla)
+      const tipo=rand(1,4);
+      let malEscrita;
+      if(tipo===1){
+        // Coma entre sujeto y verbo
+        const sv=pick(SUJ_VERB);
+        malEscrita=oracion(`${sv.s}, ${sv.v}`);
+      } else if(tipo===2){
+        // Sin apertura ¿
+        const o=pick(INTERROG);
+        malEscrita=`${o}?`;
+      } else if(tipo===3){
+        // Saludo formal con coma
+        const s=pick(SALUDOS);
+        malEscrita=`${s},`;
+      } else {
+        // Cita sin comillas
+        const c=pick(CITAS);
+        malEscrita=`${c.q}: ${c.c.charAt(0).toUpperCase()+c.c.slice(1)}.`;
+      }
+      // Buenas: una de cada tipo correcto
+      const v=pick(VOCATIVOS);
+      const e=pick(ENUM);
+      const ex=pick(EXCLAM);
+      const buenas=[
+        oracion(`${v.n}, ${v.f}`),
+        `${e.a} ${e.i[0]}, ${e.i[1]} y ${e.i[2]}${e.b}.`,
+        `¡${ex}!`
+      ];
+      const {opciones,correcta}=makeOpts(malEscrita,buenas);
+      return{ cat:'Comillas y paréntesis', t:40,
+        q:'¿Cuál oración está MAL puntuada?',
+        math:'',
+        opciones, correcta };
+    }
+
+  ]; // fin GEN
+
+  /* ─── GENERAR Y MEZCLAR PREGUNTAS ─── */
+  const preguntas=shuffle(GEN.map(g=>g()));
+  const total=preguntas.length;
+  let actual=0, puntos=0, respondida=false, reloj=null, segs=0;
+  const catPts={}, catTot={};
+  preguntas.forEach(p=>{ catTot[p.cat]=(catTot[p.cat]||0)+1; catPts[p.cat]=catPts[p.cat]||0; });
+
+  const qArea=document.getElementById('question-area');
+  const barP=document.getElementById('progress-bar');
+  const txtP=document.getElementById('progress-text');
+
+  /* ─── RENDERIZAR PREGUNTA ─── */
+  function render(i){
+    const p=preguntas[i];
+    const col=CC[p.cat]||'#0089cd';
+    const icon=CI[p.cat]||'📝';
+    const tLabel= p.t<=30?'⚡ Rápida': p.t<=45?'🕐 Media':'⏳ Difícil';
+    const opHtml=p.opciones.map(o=>
+      `<div class="option-item" data-val="${o.valor}" onclick="window.__qClick(this)"><span class="option-letter">${o.letra}.</span>${o.texto}</div>`
+    ).join('');
+    const mathBlock=p.math?`<div class="word-box">${p.math}</div>`:'';
+    const btnLbl=i===total-1?'Ver resultados':'Siguiente ›';
+    qArea.innerHTML=`
+      <div class="question-meta">
+        <span class="cat-badge" style="background:${col}">${icon} ${p.cat}</span>
+        <span class="time-badge">${tLabel} · ${p.t}s</span>
+      </div>
+      <div class="question-header">${p.q}</div>
+      ${mathBlock}
+      <div class="options">${opHtml}</div>
+      <div class="btn-container">
+        <div class="primary-btn" onclick="window.__qNext()">${btnLbl}</div>
+      </div>`;
+    if(barP) barP.style.width=((i+1)/total*100)+'%';
+    if(txtP) txtP.textContent=`Pregunta ${i+1} de ${total}`;
+    iniciarReloj(p.t);
+  }
+
+  window.__qClick=function(el){
+    if(respondida) return;
+    pararReloj(); respondida=true;
+    const p=preguntas[actual];
+    const elegida=el.getAttribute('data-val');
+    if(elegida===p.correcta){
+      el.className='option-item correct disabled';
+      puntos++; catPts[p.cat]++;
+    } else {
+      el.className='option-item incorrect disabled';
+      const ok=qArea.querySelector(`.option-item[data-val="${p.correcta}"]`);
+      if(ok) ok.className='option-item correct disabled';
+    }
+    qArea.querySelectorAll('.option-item').forEach(o=>{
+      if(!o.className.includes('disabled')) o.className+=' disabled';
+    });
+  };
+
+  window.__qNext=function(){
+    pararReloj(); actual++; respondida=false;
+    if(actual<total) render(actual);
+    else mostrarResultados();
+  };
+
+  function iniciarReloj(s){
+    pararReloj(); segs=s; actualizarReloj();
+    reloj=setInterval(()=>{ segs--; actualizarReloj(); if(segs<=0) tiempoAgotado(); },1000);
+  }
+  function pararReloj(){ if(reloj){clearInterval(reloj);reloj=null;} }
+  function actualizarReloj(){
+    const p=preguntas[actual]||{t:60};
+    const tt=document.getElementById('timer-text');
+    const tb=document.getElementById('timer-bar');
+    const tc=document.getElementById('timer-container');
+    if(tt) tt.textContent=`⏱ Tiempo: ${segs}s`;
+    const pct=(segs/p.t)*100;
+    if(tb){
+      tb.style.width=pct+'%';
+      if(pct<=25){ tb.style.background='#dc3545'; if(tc) tc.className='timer-container timer-warning'; }
+      else if(pct<=50){ tb.style.background='linear-gradient(90deg,#ffc107,#dc3545)'; if(tc) tc.className='timer-container'; }
+      else{ tb.style.background='linear-gradient(90deg,#28a745,#ffc107,#dc3545)'; if(tc) tc.className='timer-container'; }
+    }
+  }
+  function tiempoAgotado(){
+    pararReloj(); respondida=true;
+    const p=preguntas[actual];
+    const ok=qArea.querySelector(`.option-item[data-val="${p.correcta}"]`);
+    if(ok) ok.className='option-item correct disabled';
+    qArea.querySelectorAll('.option-item').forEach(o=>{ if(!o.className.includes('disabled')) o.className+=' disabled'; });
+    const tt=document.getElementById('timer-text');
+    if(tt) tt.textContent='⏰ ¡Tiempo agotado!';
+    const tc=document.getElementById('timer-container');
+    if(tc) tc.className='timer-container timer-warning';
+  }
+
+  function mostrarResultados(){
+    pararReloj();
+    qArea.innerHTML='';
+    document.getElementById('timer-container').style.display='none';
+    const pct=Math.round(puntos/total*100);
+    document.getElementById('final-score').textContent=`${puntos} / ${total}  (${pct}%)`;
+    let msg='', emoji='';
+    if(pct>=85){ emoji='🏆'; msg='¡Excelente! Dominas la puntuación del GED. ¡Estás listo!'; }
+    else if(pct>=70){ emoji='👍'; msg='¡Muy bien! Un poco más de práctica y lo logras.'; }
+    else if(pct>=50){ emoji='💪'; msg='Buen intento. Repasa las categorías en rojo y vuelve a intentarlo.'; }
+    else { emoji='📚'; msg='Sigue practicando. Identifica las categorías débiles y trabaja en ellas primero.'; }
+    document.getElementById('final-msg').textContent=emoji+' '+msg;
+
+    let html='<h3>Resultados por categoría:</h3>';
+    for(const cat of Object.keys(catTot)){
+      const s=catPts[cat]||0, t2=catTot[cat];
+      const p2=Math.round(s/t2*100);
+      const col=CC[cat]||'#0089cd';
+      const barCol=p2>=70?col:'#e53935';
+      html+=`<div class="cat-row">
+        <span class="cat-lbl">${CI[cat]} ${cat}</span>
+        <div class="cat-bar-out"><div class="cat-bar-in" style="width:${p2}%;background:${barCol}"></div></div>
+        <span class="cat-sc">${s}/${t2}</span>
+      </div>`;
+    }
+    document.getElementById('cat-results').innerHTML=html;
+
+    let minCat='', minPct=999;
+    for(const cat of Object.keys(catTot)){
+      const s=catPts[cat]||0, t2=catTot[cat], pp=s/t2;
+      if(pp<minPct){ minPct=pp; minCat=cat; }
+    }
+    document.getElementById('tip-box').textContent=
+      minPct<1 ? (TIPS[minCat]||'') : '✅ ¡Sin categorías con puntuación 0! Sigue practicando para mejorar los tiempos.';
+
+    document.getElementById('result-screen').className='result-screen';
+    document.querySelector('.quiz-progress-header').style.display='none';
+    document.getElementById('restart-btn').onclick=()=>window.location.reload();
+  }
+
+  render(0);
+
+})();
+</script>
+</body>
+</html>
