@@ -1,1 +1,774 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rapidez en palabras confundibles — GED</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    :root { --cp: #0089cd; --cs: #005f8f; --ch: #00a8fc; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 10px;
+      background: linear-gradient(135deg, #0089cd, #002d4d);
+      display: flex; justify-content: center; align-items: flex-start;
+      min-height: 90vh; flex-direction: column; gap: 10px;
+    }
+    #quiz-container {
+      background: #fff; border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      overflow: hidden; width: clamp(300px, 95%, 820px);
+      margin: 0 auto;
+    }
+    .quiz-progress-header {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      padding: 16px 22px; border-bottom: 3px solid var(--cp);
+    }
+    .progress-text {
+      text-align: center; font-weight: 700;
+      font-size: clamp(0.95em, 2.5vw, 1.1em);
+      color: var(--cp); margin-bottom: 10px;
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .progress-container {
+      background: #e0e0e0; height: 12px; border-radius: 6px;
+      overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .progress-bar {
+      height: 100%; width: 5%;
+      background: linear-gradient(90deg, var(--cp), var(--ch));
+      transition: width 0.5s cubic-bezier(0.4,0,0.2,1); border-radius: 6px;
+    }
+    .question-meta {
+      display: flex; align-items: center; justify-content: center;
+      padding: 14px 20px 0; gap: 10px; flex-wrap: wrap;
+    }
+    .cat-badge {
+      padding: 5px 15px; border-radius: 20px;
+      font-size: 0.8em; font-weight: 700; color: #fff; letter-spacing: 0.4px;
+    }
+    .time-badge {
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 0.78em; font-weight: 600;
+      background: #e8f4f8; color: #444; border: 1px solid #ccc;
+    }
+    .question-header {
+      padding: 16px 22px 8px;
+      font-size: clamp(1em, 2.6vw, 1.18em);
+      font-weight: 700; text-align: center;
+      color: #1a1a2e; line-height: 1.55;
+    }
+    .word-box {
+      background: linear-gradient(135deg, #f0f7ff, #e4effc);
+      border: 2px solid var(--cp); border-radius: 10px;
+      margin: 0 22px 14px; padding: 16px 18px;
+      font-size: clamp(1.05em, 2.6vw, 1.15em);
+      font-weight: 500; text-align: left;
+      color: #003366; line-height: 1.6;
+    }
+    .word-box .blank {
+      display: inline-block; min-width: 80px;
+      border-bottom: 3px solid var(--cp);
+      color: #888; font-style: italic;
+      padding: 0 6px; text-align: center;
+    }
+    .options { padding: 0 18px; }
+    .option-item {
+      display: block; padding: 12px 16px; margin-bottom: 11px;
+      background: #f0f4f8; color: #333;
+      border: 2px solid #e0e0e0; border-radius: 8px;
+      cursor: pointer; transition: all 0.25s ease;
+      font-size: clamp(0.92em, 2.3vw, 1.05em);
+      font-weight: 500; line-height: 1.5; user-select: none;
+    }
+    .option-item:hover:not(.disabled) {
+      background: #dff0ff; border-color: var(--ch);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .option-item.correct  { background: #4caf50!important; color:#fff!important; border-color:#4caf50!important; }
+    .option-item.incorrect{ background: #f44336!important; color:#fff!important; border-color:#f44336!important; }
+    .option-item.disabled { cursor: not-allowed; opacity: 0.85; }
+    .option-letter { font-weight: 700; margin-right: 6px; color: var(--cs); }
+    .option-item.correct .option-letter, .option-item.incorrect .option-letter { color: #fff; }
+    .btn-container { padding: 4px 18px 18px; }
+    .primary-btn {
+      display: block; width: 100%; padding: 13px;
+      color: #fff; border: none; border-radius: 8px;
+      font-size: 1.05em; font-weight: 700; cursor: pointer;
+      transition: all 0.25s ease; text-transform: uppercase;
+      letter-spacing: 1px; background: var(--cp);
+      text-align: center; user-select: none; box-sizing: border-box;
+    }
+    .primary-btn:hover {
+      background: var(--ch); transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .timer-container {
+      background: linear-gradient(135deg, #fff8e1, #ffecb3);
+      padding: 11px 18px; border-top: 2px solid #f39c12;
+    }
+    .timer-text {
+      text-align: center; font-weight: 700;
+      font-size: clamp(0.88em, 2.2vw, 1em);
+      color: #c77a00; margin-bottom: 7px;
+    }
+    .timer-bar-container {
+      background: #f0d0d0; height: 8px; border-radius: 4px; overflow: hidden;
+    }
+    .timer-bar {
+      height: 100%; width: 100%;
+      background: linear-gradient(90deg,#28a745,#ffc107,#dc3545);
+      transition: width 0.1s linear; border-radius: 4px;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.65} }
+    .timer-warning { animation: pulse 0.9s infinite; }
+    .result-screen { padding: 35px 28px; text-align: center; }
+    .result-screen.hidden { display: none; }
+    .result-screen h2 { color: var(--cp); font-size: clamp(1.4em,4vw,1.9em); margin-bottom: 10px; }
+    .result-score {
+      font-size: clamp(2em,6vw,2.8em)!important;
+      font-weight: 800; color: var(--cp)!important; margin: 12px 0!important;
+    }
+    .result-msg { font-size: clamp(1em,2.8vw,1.2em); color:#333; margin:8px 0; }
+    .cat-results { margin: 18px 0; text-align: left; }
+    .cat-results h3 { color: var(--cp); font-size: 0.95em; margin-bottom: 10px; }
+    .cat-row { display:flex; align-items:center; gap:8px; margin:7px 0; }
+    .cat-lbl { flex:1.3; font-size:0.78em; font-weight:600; }
+    .cat-bar-out { flex:2; background:#eee; border-radius:4px; height:10px; }
+    .cat-bar-in { height:100%; border-radius:4px; background:var(--cp); transition:width 0.6s; }
+    .cat-sc { font-weight:700; color:var(--cp); font-size:0.82em; min-width:38px; text-align:right; }
+    .tip-box {
+      background:#e8f5e9; border-left:4px solid #43a047;
+      border-radius:6px; padding:10px 14px; margin:14px 0 4px;
+      font-size:0.82em; color:#2e7d32; text-align:left; line-height:1.5;
+    }
+  </style>
+</head>
+<body>
+<div id="quiz-container">
+  <div class="quiz-progress-header">
+    <div class="progress-text" id="progress-text">Pregunta 1 de 20</div>
+    <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+  </div>
+  <div id="question-area"></div>
+  <div class="timer-container" id="timer-container">
+    <div class="timer-text" id="timer-text">⏱ Tiempo: 60s</div>
+    <div class="timer-bar-container"><div class="timer-bar" id="timer-bar"></div></div>
+  </div>
+  <div class="result-screen hidden" id="result-screen">
+    <h2>🎯 ¡Cuestionario completado!</h2>
+    <p class="result-score" id="final-score"></p>
+    <p class="result-msg" id="final-msg"></p>
+    <div class="cat-results" id="cat-results"></div>
+    <div class="tip-box" id="tip-box"></div>
+    <div class="btn-container" style="padding-top:14px">
+      <div class="primary-btn" id="restart-btn">🔄 Nuevas preguntas (reiniciar)</div>
+    </div>
+  </div>
+ <p style="text-align: center">Creado por Prof. José M. Fernández con Claude Opus 4.7</p>
+</div>
 
+<script>
+(function(){
+  if(window.quizConfundiblesIniciado) return;
+  window.quizConfundiblesIniciado = true;
+
+  function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function pick(arr){ return arr[rand(0,arr.length-1)]; }
+  function shuffle(arr){
+    const a=arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+  function makeOpts(correct, distractors){
+    const cs=String(correct), seen=new Set([cs]), uniq=[];
+    for(const d of distractors){
+      if(d==null) continue;
+      const ds=String(d);
+      if(ds==='undefined' || ds==='') continue;
+      if(!seen.has(ds) && uniq.length<3){ seen.add(ds); uniq.push(ds); }
+    }
+    let attempts=0;
+    while(uniq.length<3 && attempts<30){
+      attempts++;
+      const fake=cs+'·'+attempts;
+      if(!seen.has(fake)){ seen.add(fake); uniq.push(fake); }
+    }
+    while(uniq.length<3){ uniq.push('?'+uniq.length); }
+    const all=shuffle([cs, ...uniq]);
+    const L=['a','b','c','d'];
+    return {
+      opciones: all.map((v,i)=>({valor:L[i], texto:v, letra:L[i].toUpperCase()})),
+      correcta: L[all.indexOf(cs)]
+    };
+  }
+
+  const HUECO='<span class="blank">?</span>';
+
+  /* ─── BANCOS ─── */
+
+  const HAY = [
+    `En la nevera ${HUECO} mucha comida`,
+    `En el parque ${HUECO} niños jugando`,
+    `${HUECO} tres maneras de hacerlo`,
+    `No ${HUECO} nadie en casa`,
+    `${HUECO} que estudiar mucho para el GED`
+  ];
+  const AHI = [
+    `${HUECO}, en la esquina, vive mi tía`,
+    `Ven aquí, ${HUECO} está tu mochila`,
+    `${HUECO} donde te indiqué encontrarás el restaurante`,
+    `Pasamos por ${HUECO} todos los días`
+  ];
+  const AY = [
+    `¡${HUECO}! Me golpeé el pie con la mesa`,
+    `¡${HUECO}, qué dolor de cabeza tengo!`,
+    `¡${HUECO}! ¡Qué susto me diste!`,
+    `¡${HUECO}, qué calor hace hoy!`
+  ];
+  const HABER = [
+    `Va a ${HUECO} mucha gente en el evento`,
+    `Debe ${HUECO} alguna explicación lógica`,
+    `Suele ${HUECO} tráfico a esta hora`,
+    `Tiene que ${HUECO} algún error`
+  ];
+  const A_VER = [
+    `Vamos ${HUECO} qué dice el maestro`,
+    `Voy ${HUECO} qué hay en la nevera`,
+    `Acércate ${HUECO} el resultado del examen`,
+    `Pasaré ${HUECO} cómo está mi abuela`
+  ];
+  const A_PREP = [
+    `Voy ${HUECO} la escuela todos los días`,
+    `Le di el regalo ${HUECO} mi madre`,
+    `Llegamos ${HUECO} Chicago en la mañana`,
+    `Espero ${HUECO} mi amiga en la esquina`
+  ];
+  const HA_VERBO = [
+    `Pedro ${HUECO} trabajado mucho esta semana`,
+    `María ${HUECO} llegado temprano hoy`,
+    `El maestro ${HUECO} explicado la lección`,
+    `Mi hermana ${HUECO} estudiado para el examen`
+  ];
+  const AH_INTERJ = [
+    `¡${HUECO}! Ahora entiendo lo que quisiste decir`,
+    `¡${HUECO}, qué sorpresa!`,
+    `¡${HUECO}, eso era lo que me faltaba saber!`
+  ];
+  const HAYA = [
+    `Espero que ${HUECO} traído los documentos`,
+    `Ojalá ${HUECO} aprobado el examen`,
+    `No creo que ${HUECO} llegado tarde`,
+    `Dudo que ${HUECO} entendido la explicación`
+  ];
+  const HALLA = [
+    `Cuba se ${HUECO} en el Caribe`,
+    `La biblioteca se ${HUECO} cerca de mi casa`,
+    `El tesoro se ${HUECO} escondido en la cueva`,
+    `Mi padre se ${HUECO} de viaje en este momento`
+  ];
+  const ALLA = [
+    `${HUECO} en el horizonte se ve una nube`,
+    `Vamos ${HUECO}, donde están mis abuelos`,
+    `Más ${HUECO} de la montaña hay un lago`,
+    `${HUECO} en mi pueblo no hay tanto tráfico`
+  ];
+
+  const DIACRIT = [
+    {sin:'el', con:'él',
+     sinO:[`Tengo ${HUECO} libro en mi mochila`, `Hablamos con ${HUECO} profesor ayer`, `${HUECO} perro de mi vecino ladra mucho`],
+     conO:[`${HUECO} es mi hermano mayor`, `Lo que dijo ${HUECO} me sorprendió`, `Fue ${HUECO} quien llamó por teléfono`]},
+    {sin:'tu', con:'tú',
+     sinO:[`${HUECO} casa es muy grande`, `¿Dónde está ${HUECO} hermano?`, `Olvidé ${HUECO} número de teléfono`],
+     conO:[`${HUECO} tienes razón en eso`, `¿Eres ${HUECO} el que llamó?`, `${HUECO} y yo iremos al cine`]},
+    {sin:'mi', con:'mí',
+     sinO:[`Esta es ${HUECO} casa nueva`, `${HUECO} hermano vive en Chicago`, `${HUECO} profesor es muy estricto`],
+     conO:[`Eso es para ${HUECO}`, `A ${HUECO} me gusta el café`, `Confía en ${HUECO}`]},
+    {sin:'si', con:'sí',
+     sinO:[`${HUECO} llueve, no saldremos`, `${HUECO} estudias, aprobarás el examen`, `No sé ${HUECO} vendrá a la fiesta`],
+     conO:[`${HUECO}, tengo razón`, `Le respondí que ${HUECO} aceptaba`, `Claro que ${HUECO}, te ayudaré`]},
+    {sin:'te', con:'té',
+     sinO:[`${HUECO} espero en la esquina`, `Yo ${HUECO} traigo el libro`, `¿${HUECO} gusta esta comida?`],
+     conO:[`Tomo ${HUECO} verde por las mañanas`, `El ${HUECO} está caliente`, `Prefiero ${HUECO} en lugar de café`]},
+    {sin:'mas', con:'más',
+     sinO:[`Quiso ir, ${HUECO} no pudo`, `Llamé temprano, ${HUECO} no contestó`, `Lo intenté, ${HUECO} fue inútil`],
+     conO:[`Quiero ${HUECO} café, por favor`, `Necesito ${HUECO} tiempo para terminar`, `Estudia ${HUECO} que tu hermana`]}
+  ];
+
+  const PORQUE_USOS = [
+    {tipo:'porque', oraciones:[
+      `No fui a la fiesta ${HUECO} estaba cansado`,
+      `Estudia mucho ${HUECO} quiere aprobar`,
+      `Llegué tarde ${HUECO} había mucho tráfico`,
+      `No comí ${HUECO} no tenía hambre`
+    ]},
+    {tipo:'por qué', oraciones:[
+      `¿${HUECO} no viniste ayer?`,
+      `Quiero saber ${HUECO} dijiste eso`,
+      `¿${HUECO} llegas tan temprano?`,
+      `No entiendo ${HUECO} está enojada`
+    ]},
+    {tipo:'porqué', oraciones:[
+      `No conozco el ${HUECO} de su decisión`,
+      `El ${HUECO} de su llanto era evidente`,
+      `Quiero saber el ${HUECO} de tu silencio`,
+      `Cada acción tiene su ${HUECO}`
+    ]}
+  ];
+
+  const ECHO_HECHO = [
+    {tipo:'echo', oraciones:[
+      `Yo ${HUECO} sal a la sopa todos los días`,
+      `Siempre ${HUECO} azúcar en el café`,
+      `Yo ${HUECO} los papeles a la basura`
+    ]},
+    {tipo:'hecho', oraciones:[
+      `Has ${HUECO} un buen trabajo`,
+      `El ${HUECO} de llegar tarde es preocupante`,
+      `Ya he ${HUECO} mi tarea`,
+      `Es un ${HUECO} que estudia mucho`
+    ]}
+  ];
+
+  const TUBO_TUVO = [
+    {tipo:'tubo', oraciones:[
+      `El plomero arregló el ${HUECO} roto`,
+      `Pasamos por un ${HUECO} en el túnel`,
+      `El ${HUECO} de ensayo está en el laboratorio`
+    ]},
+    {tipo:'tuvo', oraciones:[
+      `Pedro ${HUECO} que trabajar el sábado`,
+      `María ${HUECO} mucho éxito en el examen`,
+      `El maestro ${HUECO} que explicar la lección dos veces`
+    ]}
+  ];
+
+  const VAYA_VALLA_BAYA = [
+    {tipo:'vaya', oraciones:[
+      `Ojalá que ${HUECO} a la fiesta`,
+      `Espero que mi hijo ${HUECO} bien en la escuela`,
+      `¡${HUECO} sorpresa!`
+    ]},
+    {tipo:'valla', oraciones:[
+      `Saltó por encima de la ${HUECO}`,
+      `La ${HUECO} publicitaria es enorme`,
+      `Pintaron la ${HUECO} del jardín`
+    ]},
+    {tipo:'baya', oraciones:[
+      `La fresa es una ${HUECO} deliciosa`,
+      `Recogí una ${HUECO} silvestre del bosque`,
+      `Esa ${HUECO} tiene un sabor agrio`
+    ]}
+  ];
+
+  const VES_VEZ = [
+    {tipo:'ves', oraciones:[
+      `¿${HUECO} esa nube en el cielo?`,
+      `No ${HUECO} bien sin tus lentes`,
+      `¿${HUECO} lo que te dije?`
+    ]},
+    {tipo:'vez', oraciones:[
+      `Es la última ${HUECO} que te lo digo`,
+      `Una ${HUECO} al año voy de vacaciones`,
+      `Tal ${HUECO} mañana llueva`
+    ]}
+  ];
+
+  const SINO_SINO = [
+    {tipo:'sino', oraciones:[
+      `No quiero café ${HUECO} té`,
+      `No es alto ${HUECO} mediano`,
+      `No fuimos al cine ${HUECO} al teatro`,
+      `No habla inglés ${HUECO} español`
+    ]},
+    {tipo:'si no', oraciones:[
+      `${HUECO} estudias, no aprobarás`,
+      `${HUECO} llueve, iremos al parque`,
+      `${HUECO} vienes pronto, me iré sin ti`,
+      `${HUECO} tienes hambre, hay comida en la nevera`
+    ]}
+  ];
+
+  const HIERVA_HIERBA = [
+    {tipo:'hierva', oraciones:[
+      `Espera a que ${HUECO} el agua para el té`,
+      `No dejes que la leche ${HUECO} demasiado`,
+      `Cuando ${HUECO} el caldo, agrega las verduras`
+    ]},
+    {tipo:'hierba', oraciones:[
+      `La ${HUECO} del jardín está muy alta`,
+      `Las vacas comen ${HUECO} en el campo`,
+      `Recogí ${HUECO} aromática para cocinar`
+    ]}
+  ];
+
+  /* ─── CATEGORÍAS ─── */
+  const CC={
+    'Familia haber':'#1a6ba0',
+    'Diacríticos':'#0e7a60',
+    'Por qué / Porque':'#c0522a',
+    'Verbo vs sustantivo':'#7b2d8b',
+    'Conjunciones y otros':'#a01c1c'
+  };
+  const CI={
+    'Familia haber':'🅷',
+    'Diacríticos':'´',
+    'Por qué / Porque':'❓',
+    'Verbo vs sustantivo':'🔄',
+    'Conjunciones y otros':'🔗'
+  };
+  const TIPS={
+    'Familia haber':'Consejo: HAY existencia ("hay tres libros"). AHÍ lugar ("ahí está"). AY interjección ("¡ay, qué dolor!"). HABER infinitivo ("va a haber gente"). A VER preposición + verbo ("voy a ver qué pasa"). HAYA del verbo haber subjuntivo. HALLA del verbo hallar (encontrar). ALLÁ lugar lejano.',
+    'Diacríticos':'Consejo: la tilde diacrítica diferencia palabras iguales. EL/ÉL: artículo / pronombre. TU/TÚ: posesivo / pronombre. MI/MÍ: posesivo / pronombre. SI/SÍ: condicional / afirmación. TE/TÉ: pronombre / bebida. MAS/MÁS: pero / cantidad.',
+    'Por qué / Porque':'Consejo: PORQUE responde causa ("porque tengo hambre"). POR QUÉ pregunta ("¿por qué?"). PORQUÉ es sustantivo ("el porqué de algo"). POR QUE es preposición + relativo (raro).',
+    'Verbo vs sustantivo':'Consejo: ECHO del verbo echar ("yo echo sal"). HECHO del verbo hacer o sustantivo. TUBO objeto cilíndrico. TUVO del verbo tener. VAYA del verbo ir. VALLA muro. BAYA fruto.',
+    'Conjunciones y otros':'Consejo: SINO conjunción adversativa con negación previa. SI NO condicional negativa. HIERVA del verbo hervir. HIERBA planta. VES del verbo ver. VEZ ocasión.'
+  };
+
+  /* ─── GENERADORES ─── */
+  const GEN=[
+    /* 1 · hay vs ahí vs ay */
+    ()=>{
+      const tipos=[{p:'hay',o:HAY},{p:'ahí',o:AHI},{p:'ay',o:AY}];
+      const t=pick(tipos);
+      const oracionTexto=pick(t.o);
+      const correct=t.p;
+      const otros=tipos.filter(x=>x.p!==t.p).map(x=>x.p);
+      const {opciones,correcta}=makeOpts(correct,[otros[0],otros[1],'ahy']);
+      return{ cat:'Familia haber', t:30, q:'¿Qué palabra completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 2 · haber vs a ver */
+    ()=>{
+      const tipo=rand(0,1);
+      let oracionTexto, correct;
+      if(tipo===0){ oracionTexto=pick(HABER); correct='haber'; }
+      else { oracionTexto=pick(A_VER); correct='a ver'; }
+      const w1=correct==='haber'?'a ver':'haber';
+      const {opciones,correcta}=makeOpts(correct,[w1,'aver','haver']);
+      return{ cat:'Familia haber', t:30, q:'¿Qué expresión completa correctamente?', math:oracionTexto, opciones, correcta };
+    },
+    /* 3 · a vs ha vs ah */
+    ()=>{
+      const tipos=[{p:'a',o:A_PREP},{p:'ha',o:HA_VERBO},{p:'ah',o:AH_INTERJ}];
+      const t=pick(tipos);
+      const oracionTexto=pick(t.o);
+      const correct=t.p;
+      const otros=tipos.filter(x=>x.p!==t.p).map(x=>x.p);
+      const {opciones,correcta}=makeOpts(correct,[otros[0],otros[1],'há']);
+      return{ cat:'Familia haber', t:30, q:'¿Qué palabra completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 4 · haya vs halla vs allá */
+    ()=>{
+      const tipos=[{p:'haya',o:HAYA},{p:'halla',o:HALLA},{p:'allá',o:ALLA}];
+      const t=pick(tipos);
+      const oracionTexto=pick(t.o);
+      const correct=t.p;
+      const otros=tipos.filter(x=>x.p!==t.p).map(x=>x.p);
+      const {opciones,correcta}=makeOpts(correct,[otros[0],otros[1],'aya']);
+      return{ cat:'Familia haber', t:30, q:'¿Qué palabra completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 5 · el / él */
+    ()=>{
+      const par=DIACRIT.find(x=>x.sin==='el');
+      const conTilde=rand(0,1)===1;
+      const oracionTexto=conTilde?pick(par.conO):pick(par.sinO);
+      const correct=conTilde?par.con:par.sin;
+      const w1=conTilde?par.sin:par.con;
+      const {opciones,correcta}=makeOpts(correct,[w1,'ël','èl']);
+      return{ cat:'Diacríticos', t:25, q:'¿Qué palabra completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 6 · tu / tú */
+    ()=>{
+      const par=DIACRIT.find(x=>x.sin==='tu');
+      const conTilde=rand(0,1)===1;
+      const oracionTexto=conTilde?pick(par.conO):pick(par.sinO);
+      const correct=conTilde?par.con:par.sin;
+      const w1=conTilde?par.sin:par.con;
+      const {opciones,correcta}=makeOpts(correct,[w1,'tù','tu´']);
+      return{ cat:'Diacríticos', t:25, q:'¿Qué palabra completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 7 · mi / mí */
+    ()=>{
+      const par=DIACRIT.find(x=>x.sin==='mi');
+      const conTilde=rand(0,1)===1;
+      const oracionTexto=conTilde?pick(par.conO):pick(par.sinO);
+      const correct=conTilde?par.con:par.sin;
+      const w1=conTilde?par.sin:par.con;
+      const {opciones,correcta}=makeOpts(correct,[w1,'mì','mi´']);
+      return{ cat:'Diacríticos', t:25, q:'¿Qué palabra completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 8 · si/sí, te/té o mas/más */
+    ()=>{
+      const palabraBase=pick(['si','te','mas']);
+      const par=DIACRIT.find(x=>x.sin===palabraBase);
+      const conTilde=rand(0,1)===1;
+      const oracionTexto=conTilde?pick(par.conO):pick(par.sinO);
+      const correct=conTilde?par.con:par.sin;
+      const w1=conTilde?par.sin:par.con;
+      const {opciones,correcta}=makeOpts(correct,[w1,par.sin+'`',par.sin+'/'+par.con]);
+      return{ cat:'Diacríticos', t:30, q:'¿Qué palabra completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 9 · porque (causa) */
+    ()=>{
+      const t=PORQUE_USOS.find(x=>x.tipo==='porque');
+      const oracionTexto=pick(t.oraciones);
+      const {opciones,correcta}=makeOpts('porque',['por qué','porqué','por que']);
+      return{ cat:'Por qué / Porque', t:30, q:'¿Qué expresión completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 10 · por qué (pregunta) */
+    ()=>{
+      const t=PORQUE_USOS.find(x=>x.tipo==='por qué');
+      const oracionTexto=pick(t.oraciones);
+      const {opciones,correcta}=makeOpts('por qué',['porque','porqué','por que']);
+      return{ cat:'Por qué / Porque', t:30, q:'¿Qué expresión completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 11 · porqué (sustantivo) */
+    ()=>{
+      const t=PORQUE_USOS.find(x=>x.tipo==='porqué');
+      const oracionTexto=pick(t.oraciones);
+      const {opciones,correcta}=makeOpts('porqué',['porque','por qué','por que']);
+      return{ cat:'Por qué / Porque', t:30, q:'¿Qué expresión completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 12 · Identificar uso correcto */
+    ()=>{
+      const t=pick(PORQUE_USOS);
+      const oracionCorrecta=pick(t.oraciones).replace(/<span class="blank">\?<\/span>/, t.tipo);
+      const otros=PORQUE_USOS.filter(x=>x.tipo!==t.tipo);
+      // 2 distractores de tipos diferentes con la palabra del tipo correcto (mal uso)
+      // + 1 distractor con la cuarta forma "por que" (mal escritura)
+      const distractores=[
+        pick(otros[0].oraciones).replace(/<span class="blank">\?<\/span>/, t.tipo),
+        pick(otros[1].oraciones).replace(/<span class="blank">\?<\/span>/, t.tipo),
+        pick(t.oraciones).replace(/<span class="blank">\?<\/span>/, 'por que')
+      ];
+      const {opciones,correcta}=makeOpts(oracionCorrecta,distractores);
+      return{ cat:'Por qué / Porque', t:35, q:'¿En cuál oración se usa correctamente esta palabra?', math:`Palabra: <strong>${t.tipo}</strong>`, opciones, correcta };
+    },
+    /* 13 · echo vs hecho */
+    ()=>{
+      const t=pick(ECHO_HECHO);
+      const oracionTexto=pick(t.oraciones);
+      const correct=t.tipo;
+      const w1=correct==='echo'?'hecho':'echo';
+      const {opciones,correcta}=makeOpts(correct,[w1,'hecho/echo','echó']);
+      return{ cat:'Verbo vs sustantivo', t:30, q:'¿Qué palabra completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 14 · tubo vs tuvo */
+    ()=>{
+      const t=pick(TUBO_TUVO);
+      const oracionTexto=pick(t.oraciones);
+      const correct=t.tipo;
+      const w1=correct==='tubo'?'tuvo':'tubo';
+      const {opciones,correcta}=makeOpts(correct,[w1,'tuvo/tubo','tubó']);
+      return{ cat:'Verbo vs sustantivo', t:30, q:'¿Qué palabra completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 15 · vaya vs valla vs baya */
+    ()=>{
+      const t=pick(VAYA_VALLA_BAYA);
+      const oracionTexto=pick(t.oraciones);
+      const correct=t.tipo;
+      const otros=VAYA_VALLA_BAYA.filter(x=>x.tipo!==t.tipo).map(x=>x.tipo);
+      const {opciones,correcta}=makeOpts(correct,[otros[0],otros[1],'baya/vaya']);
+      return{ cat:'Verbo vs sustantivo', t:30, q:'¿Qué palabra completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 16 · ves vs vez */
+    ()=>{
+      const t=pick(VES_VEZ);
+      const oracionTexto=pick(t.oraciones);
+      const correct=t.tipo;
+      const w1=correct==='ves'?'vez':'ves';
+      const {opciones,correcta}=makeOpts(correct,[w1,'vez/ves','bes']);
+      return{ cat:'Verbo vs sustantivo', t:30, q:'¿Qué palabra completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 17 · sino vs si no */
+    ()=>{
+      const t=pick(SINO_SINO);
+      const oracionTexto=pick(t.oraciones);
+      const correct=t.tipo;
+      const w1=correct==='sino'?'si no':'sino';
+      const {opciones,correcta}=makeOpts(correct,[w1,'si-no','cino']);
+      return{ cat:'Conjunciones y otros', t:35, q:'¿Qué expresión completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 18 · hierva vs hierba */
+    ()=>{
+      const t=pick(HIERVA_HIERBA);
+      const oracionTexto=pick(t.oraciones);
+      const correct=t.tipo;
+      const w1=correct==='hierva'?'hierba':'hierva';
+      const {opciones,correcta}=makeOpts(correct,[w1,'hyerba','ierba']);
+      return{ cat:'Conjunciones y otros', t:30, q:'¿Qué palabra completa correctamente la oración?', math:oracionTexto, opciones, correcta };
+    },
+    /* 19 · Identificar oración mal escrita */
+    ()=>{
+      const tipo=rand(1,4);
+      let malEscrita;
+      if(tipo===1) malEscrita=pick(AHI).replace(/<span class="blank">\?<\/span>/, 'hay');
+      else if(tipo===2) malEscrita=pick(ECHO_HECHO[1].oraciones).replace(/<span class="blank">\?<\/span>/, 'echo');
+      else if(tipo===3) malEscrita=pick(SINO_SINO[1].oraciones).replace(/<span class="blank">\?<\/span>/, 'sino');
+      else malEscrita=pick(PORQUE_USOS[1].oraciones).replace(/<span class="blank">\?<\/span>/, 'porque');
+      const buenas=[
+        pick(HAY).replace(/<span class="blank">\?<\/span>/, 'hay'),
+        pick(SINO_SINO[0].oraciones).replace(/<span class="blank">\?<\/span>/, 'sino'),
+        pick(ECHO_HECHO[0].oraciones).replace(/<span class="blank">\?<\/span>/, 'echo')
+      ];
+      const {opciones,correcta}=makeOpts(malEscrita,buenas);
+      return{ cat:'Conjunciones y otros', t:35, q:'¿Cuál oración usa MAL una palabra confundible?', math:'', opciones, correcta };
+    },
+    /* 20 · Identificar oración bien escrita */
+    ()=>{
+      const tipo=rand(1,3);
+      let correct;
+      if(tipo===1) correct=pick(HAY).replace(/<span class="blank">\?<\/span>/, 'hay');
+      else if(tipo===2) correct=pick(VES_VEZ[1].oraciones).replace(/<span class="blank">\?<\/span>/, 'vez');
+      else correct=pick(VAYA_VALLA_BAYA[0].oraciones).replace(/<span class="blank">\?<\/span>/, 'vaya');
+      const incorrectas=[
+        pick(SINO_SINO[1].oraciones).replace(/<span class="blank">\?<\/span>/, 'sino'),
+        pick(ECHO_HECHO[1].oraciones).replace(/<span class="blank">\?<\/span>/, 'echo'),
+        pick(AHI).replace(/<span class="blank">\?<\/span>/, 'hay')
+      ];
+      const {opciones,correcta}=makeOpts(correct,incorrectas);
+      return{ cat:'Conjunciones y otros', t:35, q:'¿Cuál oración está bien escrita?', math:'', opciones, correcta };
+    }
+  ];
+
+  const preguntas=shuffle(GEN.map(g=>g()));
+  const total=preguntas.length;
+  let actual=0, puntos=0, respondida=false, reloj=null, segs=0;
+  const catPts={}, catTot={};
+  preguntas.forEach(p=>{ catTot[p.cat]=(catTot[p.cat]||0)+1; catPts[p.cat]=catPts[p.cat]||0; });
+
+  const qArea=document.getElementById('question-area');
+  const barP=document.getElementById('progress-bar');
+  const txtP=document.getElementById('progress-text');
+
+  function render(i){
+    const p=preguntas[i];
+    const col=CC[p.cat]||'#0089cd';
+    const icon=CI[p.cat]||'📝';
+    const tLabel= p.t<=30?'⚡ Rápida': p.t<=45?'🕐 Media':'⏳ Difícil';
+    const opHtml=p.opciones.map(o=>
+      `<div class="option-item" data-val="${o.valor}" onclick="window.__qClick(this)"><span class="option-letter">${o.letra}.</span>${o.texto}</div>`
+    ).join('');
+    const mathBlock=p.math?`<div class="word-box">${p.math}</div>`:'';
+    const btnLbl=i===total-1?'Ver resultados':'Siguiente ›';
+    qArea.innerHTML=`
+      <div class="question-meta">
+        <span class="cat-badge" style="background:${col}">${icon} ${p.cat}</span>
+        <span class="time-badge">${tLabel} · ${p.t}s</span>
+      </div>
+      <div class="question-header">${p.q}</div>
+      ${mathBlock}
+      <div class="options">${opHtml}</div>
+      <div class="btn-container">
+        <div class="primary-btn" onclick="window.__qNext()">${btnLbl}</div>
+      </div>`;
+    if(barP) barP.style.width=((i+1)/total*100)+'%';
+    if(txtP) txtP.textContent=`Pregunta ${i+1} de ${total}`;
+    iniciarReloj(p.t);
+  }
+
+  window.__qClick=function(el){
+    if(respondida) return;
+    pararReloj(); respondida=true;
+    const p=preguntas[actual];
+    const elegida=el.getAttribute('data-val');
+    if(elegida===p.correcta){
+      el.className='option-item correct disabled';
+      puntos++; catPts[p.cat]++;
+    } else {
+      el.className='option-item incorrect disabled';
+      const ok=qArea.querySelector(`.option-item[data-val="${p.correcta}"]`);
+      if(ok) ok.className='option-item correct disabled';
+    }
+    qArea.querySelectorAll('.option-item').forEach(o=>{
+      if(!o.className.includes('disabled')) o.className+=' disabled';
+    });
+  };
+
+  window.__qNext=function(){
+    pararReloj(); actual++; respondida=false;
+    if(actual<total) render(actual);
+    else mostrarResultados();
+  };
+
+  function iniciarReloj(s){
+    pararReloj(); segs=s; actualizarReloj();
+    reloj=setInterval(()=>{ segs--; actualizarReloj(); if(segs<=0) tiempoAgotado(); },1000);
+  }
+  function pararReloj(){ if(reloj){clearInterval(reloj);reloj=null;} }
+  function actualizarReloj(){
+    const p=preguntas[actual]||{t:60};
+    const tt=document.getElementById('timer-text');
+    const tb=document.getElementById('timer-bar');
+    const tc=document.getElementById('timer-container');
+    if(tt) tt.textContent=`⏱ Tiempo: ${segs}s`;
+    const pct=(segs/p.t)*100;
+    if(tb){
+      tb.style.width=pct+'%';
+      if(pct<=25){ tb.style.background='#dc3545'; if(tc) tc.className='timer-container timer-warning'; }
+      else if(pct<=50){ tb.style.background='linear-gradient(90deg,#ffc107,#dc3545)'; if(tc) tc.className='timer-container'; }
+      else{ tb.style.background='linear-gradient(90deg,#28a745,#ffc107,#dc3545)'; if(tc) tc.className='timer-container'; }
+    }
+  }
+  function tiempoAgotado(){
+    pararReloj(); respondida=true;
+    const p=preguntas[actual];
+    const ok=qArea.querySelector(`.option-item[data-val="${p.correcta}"]`);
+    if(ok) ok.className='option-item correct disabled';
+    qArea.querySelectorAll('.option-item').forEach(o=>{ if(!o.className.includes('disabled')) o.className+=' disabled'; });
+    const tt=document.getElementById('timer-text');
+    if(tt) tt.textContent='⏰ ¡Tiempo agotado!';
+    const tc=document.getElementById('timer-container');
+    if(tc) tc.className='timer-container timer-warning';
+  }
+
+  function mostrarResultados(){
+    pararReloj();
+    qArea.innerHTML='';
+    document.getElementById('timer-container').style.display='none';
+    const pct=Math.round(puntos/total*100);
+    document.getElementById('final-score').textContent=`${puntos} / ${total}  (${pct}%)`;
+    let msg='', emoji='';
+    if(pct>=85){ emoji='🏆'; msg='¡Excelente! Dominas las palabras confundibles del español.'; }
+    else if(pct>=70){ emoji='👍'; msg='¡Muy bien! Un poco más de práctica y lo logras.'; }
+    else if(pct>=50){ emoji='💪'; msg='Buen intento. Repasa las categorías en rojo y vuelve a intentarlo.'; }
+    else { emoji='📚'; msg='Sigue practicando. Identifica las categorías débiles y trabaja en ellas primero.'; }
+    document.getElementById('final-msg').textContent=emoji+' '+msg;
+
+    let html='<h3>Resultados por categoría:</h3>';
+    for(const cat of Object.keys(catTot)){
+      const s=catPts[cat]||0, t2=catTot[cat];
+      const p2=Math.round(s/t2*100);
+      const col=CC[cat]||'#0089cd';
+      const barCol=p2>=70?col:'#e53935';
+      html+=`<div class="cat-row">
+        <span class="cat-lbl">${CI[cat]} ${cat}</span>
+        <div class="cat-bar-out"><div class="cat-bar-in" style="width:${p2}%;background:${barCol}"></div></div>
+        <span class="cat-sc">${s}/${t2}</span>
+      </div>`;
+    }
+    document.getElementById('cat-results').innerHTML=html;
+
+    let minCat='', minPct=999;
+    for(const cat of Object.keys(catTot)){
+      const s=catPts[cat]||0, t2=catTot[cat], pp=s/t2;
+      if(pp<minPct){ minPct=pp; minCat=cat; }
+    }
+    document.getElementById('tip-box').textContent=
+      minPct<1 ? (TIPS[minCat]||'') : '✅ ¡Sin categorías con puntuación 0! Sigue practicando para mejorar los tiempos.';
+
+    document.getElementById('result-screen').className='result-screen';
+    document.querySelector('.quiz-progress-header').style.display='none';
+    document.getElementById('restart-btn').onclick=()=>window.location.reload();
+  }
+
+  render(0);
+
+})();
+</script>
+</body>
+</html>
