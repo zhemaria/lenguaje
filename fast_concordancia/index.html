@@ -1,1 +1,939 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rapidez en concordancia — GED</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+    :root {
+      --cp: #0089cd; --cs: #005f8f; --ch: #00a8fc;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 10px;
+      background: linear-gradient(135deg, #0089cd, #002d4d);
+      display: flex; justify-content: center; align-items: flex-start;
+      min-height: 90vh; flex-direction: column; gap: 10px;
+    }
+    #quiz-container {
+      background: #fff; border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      overflow: hidden; width: clamp(300px, 95%, 820px);
+      margin: 0 auto;
+    }
+    .quiz-progress-header {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      padding: 16px 22px; border-bottom: 3px solid var(--cp);
+    }
+    .progress-text {
+      text-align: center; font-weight: 700;
+      font-size: clamp(0.95em, 2.5vw, 1.1em);
+      color: var(--cp); margin-bottom: 10px;
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .progress-container {
+      background: #e0e0e0; height: 12px; border-radius: 6px;
+      overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .progress-bar {
+      height: 100%; width: 5%;
+      background: linear-gradient(90deg, var(--cp), var(--ch));
+      transition: width 0.5s cubic-bezier(0.4,0,0.2,1); border-radius: 6px;
+    }
+    .question-meta {
+      display: flex; align-items: center; justify-content: center;
+      padding: 14px 20px 0; gap: 10px; flex-wrap: wrap;
+    }
+    .cat-badge {
+      padding: 5px 15px; border-radius: 20px;
+      font-size: 0.8em; font-weight: 700; color: #fff;
+      letter-spacing: 0.4px;
+    }
+    .time-badge {
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 0.78em; font-weight: 600;
+      background: #e8f4f8; color: #444;
+      border: 1px solid #ccc;
+    }
+    .question-header {
+      padding: 16px 22px 8px;
+      font-size: clamp(1em, 2.6vw, 1.18em);
+      font-weight: 700; text-align: center;
+      color: #1a1a2e; line-height: 1.55;
+    }
+    .word-box {
+      background: linear-gradient(135deg, #f0f7ff, #e4effc);
+      border: 2px solid var(--cp); border-radius: 10px;
+      margin: 0 22px 14px; padding: 16px 18px;
+      font-size: clamp(1.05em, 2.6vw, 1.15em);
+      font-weight: 500; text-align: left;
+      color: #003366;
+      line-height: 1.6;
+      letter-spacing: 0.01em;
+    }
+    .word-box.large {
+      font-size: clamp(1.4em, 4vw, 2em);
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+    .word-box .blank {
+      display: inline-block;
+      min-width: 70px;
+      border-bottom: 3px solid var(--cp);
+      color: #888;
+      font-style: italic;
+      padding: 0 6px;
+      text-align: center;
+    }
 
+    .options { padding: 0 18px; }
+    .option-item {
+      display: block; padding: 12px 16px; margin-bottom: 11px;
+      background: #f0f4f8; color: #333;
+      border: 2px solid #e0e0e0; border-radius: 8px;
+      cursor: pointer; transition: all 0.25s ease;
+      font-size: clamp(0.92em, 2.3vw, 1.05em);
+      font-weight: 500; line-height: 1.5; user-select: none;
+    }
+    .option-item:hover:not(.disabled) {
+      background: #dff0ff; border-color: var(--ch);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .option-item.correct  { background: #4caf50!important; color:#fff!important; border-color:#4caf50!important; }
+    .option-item.incorrect{ background: #f44336!important; color:#fff!important; border-color:#f44336!important; }
+    .option-item.disabled { cursor: not-allowed; opacity: 0.85; }
+    .option-letter { font-weight: 700; margin-right: 6px; color: var(--cs); }
+    .option-item.correct .option-letter,
+    .option-item.incorrect .option-letter { color: #fff; }
+
+    .btn-container { padding: 4px 18px 18px; }
+    .primary-btn {
+      display: block; width: 100%; padding: 13px;
+      color: #fff; border: none; border-radius: 8px;
+      font-size: 1.05em; font-weight: 700; cursor: pointer;
+      transition: all 0.25s ease; text-transform: uppercase;
+      letter-spacing: 1px; background: var(--cp);
+      text-align: center; user-select: none; box-sizing: border-box;
+    }
+    .primary-btn:hover {
+      background: var(--ch); transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .timer-container {
+      background: linear-gradient(135deg, #fff8e1, #ffecb3);
+      padding: 11px 18px; border-top: 2px solid #f39c12;
+    }
+    .timer-text {
+      text-align: center; font-weight: 700;
+      font-size: clamp(0.88em, 2.2vw, 1em);
+      color: #c77a00; margin-bottom: 7px;
+    }
+    .timer-bar-container {
+      background: #f0d0d0; height: 8px; border-radius: 4px; overflow: hidden;
+    }
+    .timer-bar {
+      height: 100%; width: 100%;
+      background: linear-gradient(90deg,#28a745,#ffc107,#dc3545);
+      transition: width 0.1s linear; border-radius: 4px;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.65} }
+    .timer-warning { animation: pulse 0.9s infinite; }
+    .result-screen { padding: 35px 28px; text-align: center; }
+    .result-screen.hidden { display: none; }
+    .result-screen h2 { color: var(--cp); font-size: clamp(1.4em,4vw,1.9em); margin-bottom: 10px; }
+    .result-score {
+      font-size: clamp(2em,6vw,2.8em)!important;
+      font-weight: 800; color: var(--cp)!important; margin: 12px 0!important;
+    }
+    .result-msg { font-size: clamp(1em,2.8vw,1.2em); color:#333; margin:8px 0; }
+    .cat-results { margin: 18px 0; text-align: left; }
+    .cat-results h3 { color: var(--cp); font-size: 0.95em; margin-bottom: 10px; }
+    .cat-row { display:flex; align-items:center; gap:8px; margin:7px 0; }
+    .cat-lbl { flex:1.3; font-size:0.78em; font-weight:600; }
+    .cat-bar-out { flex:2; background:#eee; border-radius:4px; height:10px; }
+    .cat-bar-in { height:100%; border-radius:4px; background:var(--cp); transition:width 0.6s; }
+    .cat-sc { font-weight:700; color:var(--cp); font-size:0.82em; min-width:38px; text-align:right; }
+    .tip-box {
+      background:#e8f5e9; border-left:4px solid #43a047;
+      border-radius:6px; padding:10px 14px; margin:14px 0 4px;
+      font-size:0.82em; color:#2e7d32; text-align:left; line-height:1.5;
+    }
+  </style>
+</head>
+<body>
+<div id="quiz-container">
+
+  <div class="quiz-progress-header">
+    <div class="progress-text" id="progress-text">Pregunta 1 de 20</div>
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+  </div>
+
+  <div id="question-area"></div>
+
+  <div class="timer-container" id="timer-container">
+    <div class="timer-text" id="timer-text">⏱ Tiempo: 60s</div>
+    <div class="timer-bar-container">
+      <div class="timer-bar" id="timer-bar"></div>
+    </div>
+  </div>
+
+  <div class="result-screen hidden" id="result-screen">
+    <h2>🎯 ¡Cuestionario completado!</h2>
+    <p class="result-score" id="final-score"></p>
+    <p class="result-msg" id="final-msg"></p>
+    <div class="cat-results" id="cat-results"></div>
+    <div class="tip-box" id="tip-box"></div>
+    <div class="btn-container" style="padding-top:14px">
+      <div class="primary-btn" id="restart-btn">🔄 Nuevas preguntas (reiniciar)</div>
+    </div>
+  </div>
+ <p style="text-align: center">Creado por Prof. José M. Fernández con Claude Opus 4.7</p>
+</div>
+
+<script>
+(function(){
+  if(window.quizConcordanciaIniciado) return;
+  window.quizConcordanciaIniciado = true;
+
+  /* ─── UTILIDADES ─── */
+  function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function pick(arr){ return arr[rand(0,arr.length-1)]; }
+  function shuffle(arr){
+    const a=arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  /* ─── makeOpts ─── */
+  function makeOpts(correct, distractors){
+    const cs=String(correct), seen=new Set([cs]), uniq=[];
+    for(const d of distractors){
+      if(d==null) continue;
+      const ds=String(d);
+      if(ds==='undefined' || ds==='') continue;
+      if(!seen.has(ds) && uniq.length<3){ seen.add(ds); uniq.push(ds); }
+    }
+    let attempts=0;
+    while(uniq.length<3 && attempts<30){
+      attempts++;
+      const fake=cs+'·'+attempts;
+      if(!seen.has(fake)){ seen.add(fake); uniq.push(fake); }
+    }
+    while(uniq.length<3){ uniq.push('?'+uniq.length); }
+    const all=shuffle([cs, ...uniq]);
+    const L=['a','b','c','d'];
+    return {
+      opciones: all.map((v,i)=>({valor:L[i], texto:v, letra:L[i].toUpperCase()})),
+      correcta: L[all.indexOf(cs)]
+    };
+  }
+
+  /* ─── BANCOS ─── */
+
+  // Sujetos en singular (3ra persona) con género
+  const SUJ_SG = [
+    {s:'El maestro', g:'m'},
+    {s:'La doctora', g:'f'},
+    {s:'Mi hermano', g:'m'},
+    {s:'El gato', g:'m'},
+    {s:'La canción', g:'f'},
+    {s:'Pedro', g:'m'},
+    {s:'María', g:'f'},
+    {s:'Mi hijo', g:'m'},
+    {s:'La maestra', g:'f'},
+    {s:'El estudiante', g:'m'}
+  ];
+
+  // Sujetos en plural
+  const SUJ_PL = [
+    {s:'Los maestros', g:'m'},
+    {s:'Las doctoras', g:'f'},
+    {s:'Mis hermanos', g:'m'},
+    {s:'Los gatos', g:'m'},
+    {s:'Las canciones', g:'f'},
+    {s:'Pedro y Juan', g:'m'},
+    {s:'María y Ana', g:'f'},
+    {s:'Mis hijos', g:'m'},
+    {s:'Las maestras', g:'f'},
+    {s:'Los estudiantes', g:'m'}
+  ];
+
+  // Sujetos compuestos (singular + singular = plural)
+  const SUJ_COMP = [
+    {a:'Mi madre', b:'mi padre', resto:'cocinan los domingos'},
+    {a:'Juan', b:'María', resto:'estudian en la universidad'},
+    {a:'El maestro', b:'la directora', resto:'hablaron en la reunión'},
+    {a:'Mi hermano', b:'yo', resto:'jugamos al fútbol', verbo1:'jugamos'},          // 1ra persona plural
+    {a:'Tú', b:'Pedro', resto:'irán al cine', verbo1:'irán'}                         // tratamiento Ud.
+  ];
+
+  // Verbos en presente (3ra persona)
+  const VERBOS = [
+    {sg:'estudia', pl:'estudian', comp:'todos los días'},
+    {sg:'trabaja', pl:'trabajan', comp:'en el hospital'},
+    {sg:'come', pl:'comen', comp:'pizza los viernes'},
+    {sg:'habla', pl:'hablan', comp:'español muy bien'},
+    {sg:'vive', pl:'viven', comp:'en Chicago'},
+    {sg:'canta', pl:'cantan', comp:'en el coro'},
+    {sg:'corre', pl:'corren', comp:'cada mañana'},
+    {sg:'lee', pl:'leen', comp:'el periódico'},
+    {sg:'escribe', pl:'escriben', comp:'cartas a la familia'}
+  ];
+
+  // Sustantivos colectivos (siempre singular en español)
+  const COLECTIVOS = [
+    {s:'La gente', adj:'cansada', vsg:'está', vpl:'están'},
+    {s:'La mayoría', adj:'satisfecha', vsg:'está', vpl:'están'},
+    {s:'El público', adj:'emocionado', vsg:'estaba', vpl:'estaban'},
+    {s:'La familia', adj:'unida', vsg:'es', vpl:'son'},
+    {s:'El equipo', adj:'preparado', vsg:'está', vpl:'están'},
+    {s:'La pareja', adj:'feliz', vsg:'es', vpl:'son'},
+    {s:'El grupo', adj:'organizado', vsg:'es', vpl:'son'},
+    {s:'La policía', adj:'alerta', vsg:'está', vpl:'están'}
+  ];
+
+  // Sustantivos femeninos terminados en -a (artículo "la")
+  const FEM_A = ['mesa','silla','puerta','ventana','escuela','casa','pizarra','maleta','manzana','camisa','revista','guitarra','hora','pluma','tarea'];
+
+  // Sustantivos masculinos terminados en -o (artículo "el")
+  const MASC_O = ['libro','plato','cuaderno','vaso','techo','suelo','espejo','hilo','cuchillo','dinero','perro','caballo','pollo','queso','sombrero'];
+
+  // Sustantivos femeninos que empiezan con a/ha tónica → "el" en singular pero "las" en plural
+  const FEM_EXC = [
+    {s:'agua', sg_art:'el', pl_art:'las', pl:'aguas'},
+    {s:'águila', sg_art:'el', pl_art:'las', pl:'águilas'},
+    {s:'hacha', sg_art:'el', pl_art:'las', pl:'hachas'},
+    {s:'alma', sg_art:'el', pl_art:'las', pl:'almas'},
+    {s:'aula', sg_art:'el', pl_art:'las', pl:'aulas'},
+    {s:'arma', sg_art:'el', pl_art:'las', pl:'armas'},
+    {s:'área', sg_art:'el', pl_art:'las', pl:'áreas'},
+    {s:'hambre', sg_art:'el', pl_art:'las', pl:'hambres'}
+  ];
+
+  // Sustantivos no transparentes (terminación engañosa)
+  const NO_TRANS = [
+    {s:'mano', g:'f', art:'la'},
+    {s:'radio', g:'f', art:'la'},
+    {s:'foto', g:'f', art:'la'},
+    {s:'moto', g:'f', art:'la'},
+    {s:'día', g:'m', art:'el'},
+    {s:'mapa', g:'m', art:'el'},
+    {s:'planeta', g:'m', art:'el'},
+    {s:'tema', g:'m', art:'el'},
+    {s:'problema', g:'m', art:'el'},
+    {s:'sistema', g:'m', art:'el'}
+  ];
+
+  // Plurales en -s (terminan en vocal átona)
+  const PL_S = [
+    {sg:'libro', pl:'libros'},
+    {sg:'mesa', pl:'mesas'},
+    {sg:'silla', pl:'sillas'},
+    {sg:'casa', pl:'casas'},
+    {sg:'gato', pl:'gatos'},
+    {sg:'perro', pl:'perros'},
+    {sg:'puerta', pl:'puertas'},
+    {sg:'cuaderno', pl:'cuadernos'}
+  ];
+
+  // Plurales en -es (terminan en consonante)
+  const PL_ES = [
+    {sg:'mantel', pl:'manteles'},
+    {sg:'profesor', pl:'profesores'},
+    {sg:'doctor', pl:'doctores'},
+    {sg:'pared', pl:'paredes'},
+    {sg:'mes', pl:'meses'},
+    {sg:'país', pl:'países'},
+    {sg:'español', pl:'españoles'},
+    {sg:'animal', pl:'animales'}
+  ];
+
+  // Plurales irregulares (z→ces, cambio de tilde)
+  const PL_IRR = [
+    {sg:'lápiz', pl:'lápices'},
+    {sg:'luz', pl:'luces'},
+    {sg:'vez', pl:'veces'},
+    {sg:'pez', pl:'peces'},
+    {sg:'cruz', pl:'cruces'},
+    {sg:'voz', pl:'voces'},
+    {sg:'examen', pl:'exámenes'},
+    {sg:'joven', pl:'jóvenes'},
+    {sg:'imagen', pl:'imágenes'},
+    {sg:'origen', pl:'orígenes'}
+  ];
+
+  // Sustantivos para adjetivos (con género y número)
+  const SUST_ADJ = [
+    {s:'niño', g:'m', n:'sg'},
+    {s:'niña', g:'f', n:'sg'},
+    {s:'niños', g:'m', n:'pl'},
+    {s:'niñas', g:'f', n:'pl'},
+    {s:'libro', g:'m', n:'sg'},
+    {s:'libros', g:'m', n:'pl'},
+    {s:'casa', g:'f', n:'sg'},
+    {s:'casas', g:'f', n:'pl'},
+    {s:'gato', g:'m', n:'sg'},
+    {s:'mesa', g:'f', n:'sg'},
+    {s:'estudiantes', g:'m', n:'pl'},
+    {s:'puertas', g:'f', n:'pl'}
+  ];
+
+  // Adjetivos que cambian con género y número
+  const ADJ_VAR = [
+    {ms:'bonito', fs:'bonita', mp:'bonitos', fp:'bonitas'},
+    {ms:'alto', fs:'alta', mp:'altos', fp:'altas'},
+    {ms:'pequeño', fs:'pequeña', mp:'pequeños', fp:'pequeñas'},
+    {ms:'simpático', fs:'simpática', mp:'simpáticos', fp:'simpáticas'},
+    {ms:'rojo', fs:'roja', mp:'rojos', fp:'rojas'},
+    {ms:'cansado', fs:'cansada', mp:'cansados', fp:'cansadas'},
+    {ms:'nuevo', fs:'nueva', mp:'nuevos', fp:'nuevas'},
+    {ms:'limpio', fs:'limpia', mp:'limpios', fp:'limpias'}
+  ];
+
+  // Adjetivos invariables (igual masculino y femenino, solo cambia número)
+  const ADJ_INV = [
+    {sg:'azul', pl:'azules'},
+    {sg:'verde', pl:'verdes'},
+    {sg:'feliz', pl:'felices'},
+    {sg:'gris', pl:'grises'},
+    {sg:'amable', pl:'amables'},
+    {sg:'fácil', pl:'fáciles'},
+    {sg:'difícil', pl:'difíciles'},
+    {sg:'inteligente', pl:'inteligentes'},
+    {sg:'jovial', pl:'joviales'}
+  ];
+
+  /* ─── CATEGORÍAS ─── */
+  const CC={
+    'Sujeto–verbo':'#1a6ba0',
+    'Sustantivos colectivos':'#0e7a60',
+    'Género':'#c0522a',
+    'Número (plural)':'#7b2d8b',
+    'Adjetivos':'#a01c1c'
+  };
+  const CI={
+    'Sujeto–verbo':'🔢',
+    'Sustantivos colectivos':'👥',
+    'Género':'⚧',
+    'Número (plural)':'➕',
+    'Adjetivos':'🎨'
+  };
+  const TIPS={
+    'Sujeto–verbo':'Consejo: el verbo concuerda en NÚMERO con el sujeto. Si el sujeto es plural, el verbo es plural; si es singular, el verbo es singular. Cuidado con los sujetos largos: identifica el núcleo.',
+    'Sustantivos colectivos':'Consejo: en español, los sustantivos colectivos como "la gente", "la mayoría", "el público" o "la familia" siempre llevan verbo en SINGULAR (a diferencia del inglés). Decimos "la gente está" NO "la gente están".',
+    'Género':'Consejo: la mayoría de palabras en -o son masculinas y en -a son femeninas, pero hay excepciones: la mano, la radio, el día, el mapa, el problema. Las palabras femeninas que empiezan con a- o ha- tónica usan "el" en singular: el agua, el águila.',
+    'Número (plural)':'Consejo: si la palabra termina en vocal, el plural es +s (mesa→mesas). Si termina en consonante, +es (mantel→manteles). Z se cambia por c: lápiz→lápices, luz→luces. Algunas palabras cambian la tilde: examen→exámenes.',
+    'Adjetivos':'Consejo: el adjetivo concuerda en GÉNERO y NÚMERO con el sustantivo. Adjetivos terminados en consonante o -e suelen ser invariables en género: feliz, azul, verde, amable. Solo cambian de número: feliz→felices.'
+  };
+
+  /* ─── GENERADORES (20) ─── */
+  const GEN=[
+
+    /* ════ SUJETO–VERBO (4) ════ */
+
+    /* 1 · Sujeto singular → verbo singular · 30s */
+    ()=>{
+      const s=pick(SUJ_SG);
+      const v=pick(VERBOS);
+      const correct=`${s.s} ${v.sg} ${v.comp}.`;
+      const w1=`${s.s} ${v.pl} ${v.comp}.`;                                                // verbo plural (mal)
+      const w2=`${s.s}s ${v.sg} ${v.comp}.`;                                               // sujeto pluralizado mal
+      const w3=`${s.s} ${v.pl}s ${v.comp}.`;                                               // verbo doble pluralizado
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Sujeto–verbo', t:30,
+        q:'Elige la versión correcta:',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 2 · Sujeto plural → verbo plural · 30s */
+    ()=>{
+      const s=pick(SUJ_PL.filter(x=>!x.s.includes(' y ')));                                // excluir compuestos
+      const v=pick(VERBOS);
+      const correct=`${s.s} ${v.pl} ${v.comp}.`;
+      const w1=`${s.s} ${v.sg} ${v.comp}.`;                                                // verbo singular (mal)
+      // Singularizar el sujeto (artículo y núcleo)
+      const sujetoSg = s.s.replace(/^Los /, 'El ').replace(/^Las /, 'La ').replace(/^Mis /, 'Mi ').replace(/s\b/, '');
+      const w2=`${sujetoSg} ${v.pl} ${v.comp}.`;                                            // sujeto sg + verbo pl (mal)
+      // Ambos sin -s (sujeto y artículo en singular pero discordantes)
+      const w3=`${s.s.replace(/s\b/g,'')} ${v.sg} ${v.comp}.`;                              // "Lo maestro estudia..." (mal)
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Sujeto–verbo', t:30,
+        q:'Elige la versión correcta:',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 3 · Sujeto compuesto → verbo plural · 35s */
+    ()=>{
+      const s=pick(SUJ_COMP.filter(x=>!x.verbo1));                                         // solo los simples (3ra persona)
+      const correct=`${s.a} y ${s.b} ${s.resto}.`;
+      // Distractores: con verbo singular
+      const verboSplit=s.resto.split(' ');
+      const verbo=verboSplit[0];
+      const restoSinVerbo=verboSplit.slice(1).join(' ');
+      // Convertir verbo plural a singular (heurística simple)
+      const verboSg= verbo.endsWith('an') ? verbo.slice(0,-2)+'a' :
+                     verbo.endsWith('en') ? verbo.slice(0,-2)+'e' :
+                     verbo.endsWith('aron') ? verbo.slice(0,-4)+'ó' :
+                     verbo.endsWith('ron') ? verbo.slice(0,-3)+'' :
+                     verbo;
+      const w1=`${s.a} y ${s.b} ${verboSg} ${restoSinVerbo}.`;                              // verbo singular
+      const w2=`${s.a}, ${s.b} ${s.resto}.`;                                                // coma en lugar de "y"
+      const w3=`${s.a} y ${s.b}, ${s.resto}.`;                                              // coma entre sujeto compuesto y verbo
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Sujeto–verbo', t:35,
+        q:'Elige la versión correcta (sujeto compuesto):',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 4 · Identificar discordancia · 30s */
+    ()=>{
+      // 1 oración con discordancia + 3 correctas
+      const sv=pick(SUJ_SG);
+      const v=pick(VERBOS);
+      const malEscrita=`${sv.s} ${v.pl} ${v.comp}.`;                                       // singular + verbo plural
+      const buenas=[];
+      // Buena 1: sg+sg
+      const sg2=pick(SUJ_SG.filter(x=>x.s!==sv.s));
+      const v2=pick(VERBOS);
+      buenas.push(`${sg2.s} ${v2.sg} ${v2.comp}.`);
+      // Buena 2: pl+pl
+      const pl1=pick(SUJ_PL);
+      const v3=pick(VERBOS);
+      buenas.push(`${pl1.s} ${v3.pl} ${v3.comp}.`);
+      // Buena 3: sg+sg distinto
+      const sg3=pick(SUJ_SG.filter(x=>x.s!==sv.s && x.s!==sg2.s));
+      const v4=pick(VERBOS);
+      buenas.push(`${sg3.s} ${v4.sg} ${v4.comp}.`);
+      const {opciones,correcta}=makeOpts(malEscrita,buenas);
+      return{ cat:'Sujeto–verbo', t:30,
+        q:'¿Cuál oración tiene un error de concordancia?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ SUSTANTIVOS COLECTIVOS (4) ════ */
+
+    /* 5 · Colectivo + verbo singular · 25s */
+    ()=>{
+      const c=pick(COLECTIVOS);
+      const correct=`${c.s} ${c.vsg} ${c.adj}.`;
+      const w1=`${c.s} ${c.vpl} ${c.adj}.`;                                                // verbo plural (mal)
+      const w2=`${c.s} ${c.vpl} ${c.adj}s.`;                                               // verbo plural + adj plural
+      const sujetoPl = c.s.replace(/^La /, 'Las ').replace(/^El /, 'Los ');
+      const w3=`${sujetoPl} ${c.vsg} ${c.adj}.`;                                            // sujeto pluralizado (mal)
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Sustantivos colectivos', t:25,
+        q:'Elige la versión correcta:',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 6 · Colectivo: artículo plural mal usado · 30s */
+    ()=>{
+      const c=pick(COLECTIVOS);
+      const correct=`${c.s} ${c.vsg} ${c.adj}.`;
+      // Distractores comunes
+      const w1=`${c.s} ${c.vpl} ${c.adj}.`;                                                // verbo plural
+      const w2=`${c.s} ${c.vsg} ${c.adj}s.`;                                               // adjetivo plural
+      const w3=`${c.s} ${c.vpl} ${c.adj}s.`;                                               // verbo y adj plurales
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Sustantivos colectivos', t:30,
+        q:'Elige la versión correcta (sustantivo colectivo):',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 7 · Identificar uso correcto del colectivo · 30s */
+    ()=>{
+      const c=pick(COLECTIVOS);
+      const correct=`${c.s} ${c.vsg} ${c.adj}.`;
+      // 3 distractores: todos con error
+      const c2=pick(COLECTIVOS.filter(x=>x.s!==c.s));
+      const c3=pick(COLECTIVOS.filter(x=>x.s!==c.s && x.s!==c2.s));
+      const c4=pick(COLECTIVOS.filter(x=>x.s!==c.s && x.s!==c2.s && x.s!==c3.s));
+      const w1=`${c2.s} ${c2.vpl} ${c2.adj}.`;                                              // verbo plural
+      const w2=`${c3.s} ${c3.vsg} ${c3.adj}s.`;                                             // adjetivo plural
+      const w3=`${c4.s} ${c4.vpl} ${c4.adj}s.`;                                             // ambos plurales
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Sustantivos colectivos', t:30,
+        q:'¿Cuál oración usa correctamente el sustantivo colectivo?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 8 · Identificar discordancia con colectivo · 30s */
+    ()=>{
+      const c=pick(COLECTIVOS);
+      const malEscrita=`${c.s} ${c.vpl} ${c.adj}.`;                                        // verbo plural (mal)
+      // 3 buenas (con verbo singular)
+      const c2=pick(COLECTIVOS.filter(x=>x.s!==c.s));
+      const c3=pick(COLECTIVOS.filter(x=>x.s!==c.s && x.s!==c2.s));
+      const c4=pick(COLECTIVOS.filter(x=>x.s!==c.s && x.s!==c2.s && x.s!==c3.s));
+      const buenas=[
+        `${c2.s} ${c2.vsg} ${c2.adj}.`,
+        `${c3.s} ${c3.vsg} ${c3.adj}.`,
+        `${c4.s} ${c4.vsg} ${c4.adj}.`
+      ];
+      const {opciones,correcta}=makeOpts(malEscrita,buenas);
+      return{ cat:'Sustantivos colectivos', t:30,
+        q:'¿Cuál oración tiene un error de concordancia?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ GÉNERO (4) ════ */
+
+    /* 9 · Sustantivo en -a femenino · 25s */
+    ()=>{
+      const w=pick(FEM_A);
+      const correct=`la ${w}`;
+      const w1=`el ${w}`;                                                                  // género incorrecto
+      const w2=`las ${w}`;                                                                 // número incorrecto
+      const w3=`los ${w}`;                                                                 // género y número
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Género', t:25,
+        q:'Elige el artículo correcto:',
+        math:`<span class="blank">?</span> ${w}`,
+        opciones, correcta };
+    },
+
+    /* 10 · Sustantivo en -o masculino · 25s */
+    ()=>{
+      const w=pick(MASC_O);
+      const correct=`el ${w}`;
+      const w1=`la ${w}`;                                                                  // género incorrecto
+      const w2=`los ${w}`;                                                                 // número incorrecto
+      const w3=`las ${w}`;                                                                 // género y número
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Género', t:25,
+        q:'Elige el artículo correcto:',
+        math:`<span class="blank">?</span> ${w}`,
+        opciones, correcta };
+    },
+
+    /* 11 · Excepciones: el agua, el águila · 35s */
+    ()=>{
+      const w=pick(FEM_EXC);
+      const correct=`${w.sg_art} ${w.s}`;
+      const w1=`la ${w.s}`;                                                                // "la agua" — error común
+      const w2=`las ${w.s}`;                                                               // plural mal
+      const w3=`los ${w.s}`;                                                               // género y número mal
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Género', t:35,
+        q:'Elige el artículo correcto (singular):',
+        math:`<span class="blank">?</span> ${w.s}`,
+        opciones, correcta };
+    },
+
+    /* 12 · Sustantivos no transparentes (la mano, el día) · 30s */
+    ()=>{
+      const w=pick(NO_TRANS);
+      const correct=`${w.art} ${w.s}`;
+      const wOtroArt = w.art==='la'?'el':'la';
+      const w1=`${wOtroArt} ${w.s}`;                                                       // género opuesto
+      const w2=`${w.art==='la'?'las':'los'} ${w.s}`;                                       // plural mismo género
+      const w3=`${w.art==='la'?'los':'las'} ${w.s}`;                                       // plural género opuesto
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Género', t:30,
+        q:'Elige el artículo correcto:',
+        math:`<span class="blank">?</span> ${w.s}`,
+        opciones, correcta };
+    },
+
+    /* ════ NÚMERO / PLURAL (4) ════ */
+
+    /* 13 · Plural en -s · 20s */
+    ()=>{
+      const p=pick(PL_S);
+      const correct=p.pl;
+      const w1=p.sg+'es';                                                                  // mantel→manteles, pero aquí mal
+      const w2=p.sg+'';                                                                    // sin plural (igual que sg)
+      const w3=p.sg+'ses';                                                                 // doble s
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Número (plural)', t:20,
+        q:`¿Cuál es el plural correcto de <strong>${p.sg}</strong>?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 14 · Plural en -es · 25s */
+    ()=>{
+      const p=pick(PL_ES);
+      const correct=p.pl;
+      const w1=p.sg+'s';                                                                   // mantel+s = "mantels" (mal)
+      const w2=p.sg;                                                                       // sin plural
+      const w3=p.pl+'es';                                                                  // doble plural: "manteleses" (mal)
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Número (plural)', t:25,
+        q:`¿Cuál es el plural correcto de <strong>${p.sg}</strong>?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 15 · Plurales irregulares (z→ces, tildes) · 30s */
+    ()=>{
+      const p=pick(PL_IRR);
+      const correct=p.pl;
+      const w1=p.sg+'s';                                                                   // lápizs (mal)
+      const w2=p.sg;                                                                       // sin pluralizar
+      const w3=p.sg+'es';                                                                  // lápizes / examenes (mal, no aplica regla z→c o tilde)
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Número (plural)', t:30,
+        q:`¿Cuál es el plural correcto de <strong>${p.sg}</strong>?`,
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 16 · Identificar plural mal formado · 30s */
+    ()=>{
+      // 1 mal formado + 3 bien
+      const p=pick(PL_IRR);
+      const malEscrita=p.sg+'es';                                                          // lápizes (mal)
+      const buenas=shuffle(PL_IRR.filter(x=>x.sg!==p.sg)).slice(0,3).map(x=>x.pl);
+      const {opciones,correcta}=makeOpts(malEscrita,buenas);
+      return{ cat:'Número (plural)', t:30,
+        q:'¿Cuál plural está MAL formado?',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* ════ ADJETIVOS (4) ════ */
+
+    /* 17 · Concordancia género (sg) · 25s */
+    ()=>{
+      const s=pick(SUST_ADJ.filter(x=>x.n==='sg'));
+      const a=pick(ADJ_VAR);
+      const correctAdj = s.g==='m' ? a.ms : a.fs;
+      const correct=`El/La ${s.s} es ${correctAdj}.`.replace('El/La', s.g==='m'?'El':'La');
+      const otroAdj = s.g==='m' ? a.fs : a.ms;
+      const w1=`El/La ${s.s} es ${otroAdj}.`.replace('El/La', s.g==='m'?'El':'La');         // género opuesto
+      const w2=`El/La ${s.s} es ${a.mp}.`.replace('El/La', s.g==='m'?'El':'La');            // plural masculino
+      const w3=`El/La ${s.s} es ${a.fp}.`.replace('El/La', s.g==='m'?'El':'La');            // plural femenino
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Adjetivos', t:25,
+        q:'Elige la versión correcta:',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 18 · Concordancia número (pl) · 25s */
+    ()=>{
+      const s=pick(SUST_ADJ.filter(x=>x.n==='pl'));
+      const a=pick(ADJ_VAR);
+      const correctAdj = s.g==='m' ? a.mp : a.fp;
+      const art = s.g==='m'?'Los':'Las';
+      const correct=`${art} ${s.s} son ${correctAdj}.`;
+      const w1=`${art} ${s.s} son ${a.ms}.`;                                                // singular masc
+      const w2=`${art} ${s.s} son ${a.fs}.`;                                                // singular fem
+      const otroAdjPl = s.g==='m' ? a.fp : a.mp;
+      const w3=`${art} ${s.s} son ${otroAdjPl}.`;                                           // género opuesto plural
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Adjetivos', t:25,
+        q:'Elige la versión correcta:',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 19 · Adjetivos invariables · 25s */
+    ()=>{
+      const s=pick(SUST_ADJ);
+      const a=pick(ADJ_INV);
+      const correctAdj = s.n==='sg' ? a.sg : a.pl;
+      const art = s.g==='m'? (s.n==='sg'?'El':'Los') : (s.n==='sg'?'La':'Las');
+      const verbo = s.n==='sg'?'es':'son';
+      const correct=`${art} ${s.s} ${verbo} ${correctAdj}.`;
+      // Distractores: variar el género (pero estos adj son invariables, así que la trampa es ponerle 'a' o 's' incorrecto)
+      const adjOpuesto = s.n==='sg' ? a.pl : a.sg;                                          // número opuesto
+      const w1=`${art} ${s.s} ${verbo} ${adjOpuesto}.`;
+      const w2=`${art} ${s.s} ${verbo} ${a.sg}a.`;                                          // intento de feminizar (mal)
+      const w3=`${art} ${s.s} ${verbo} ${a.sg}o.`;                                          // intento de masculinizar (mal)
+      const {opciones,correcta}=makeOpts(correct,[w1,w2,w3]);
+      return{ cat:'Adjetivos', t:25,
+        q:'Elige la versión correcta (adjetivo invariable):',
+        math:'',
+        opciones, correcta };
+    },
+
+    /* 20 · Identificar discordancia adjetivo-sustantivo · 30s */
+    ()=>{
+      const s=pick(SUST_ADJ);
+      const a=pick(ADJ_VAR);
+      // Mal: género o número incorrecto
+      const adjMal = s.g==='m' ? (s.n==='sg' ? a.fs : a.fp) : (s.n==='sg' ? a.ms : a.mp);   // género opuesto
+      const art = s.g==='m'? (s.n==='sg'?'El':'Los') : (s.n==='sg'?'La':'Las');
+      const verbo = s.n==='sg'?'es':'son';
+      const malEscrita = `${art} ${s.s} ${verbo} ${adjMal}.`;
+      // 3 buenas únicas con otros sustantivos/adjetivos
+      const buenas=new Set();
+      let attempts=0;
+      while(buenas.size<3 && attempts<30){
+        attempts++;
+        const s2=pick(SUST_ADJ);
+        const a2=pick(ADJ_VAR);
+        const adj2 = s2.g==='m' ? (s2.n==='sg' ? a2.ms : a2.mp) : (s2.n==='sg' ? a2.fs : a2.fp);
+        const art2 = s2.g==='m'? (s2.n==='sg'?'El':'Los') : (s2.n==='sg'?'La':'Las');
+        const verbo2 = s2.n==='sg'?'es':'son';
+        const oracionTxt = `${art2} ${s2.s} ${verbo2} ${adj2}.`;
+        if(oracionTxt !== malEscrita) buenas.add(oracionTxt);
+      }
+      const {opciones,correcta}=makeOpts(malEscrita,[...buenas]);
+      return{ cat:'Adjetivos', t:30,
+        q:'¿Cuál oración tiene un error de concordancia?',
+        math:'',
+        opciones, correcta };
+    }
+
+  ]; // fin GEN
+
+  /* ─── GENERAR Y MEZCLAR PREGUNTAS ─── */
+  const preguntas=shuffle(GEN.map(g=>g()));
+  const total=preguntas.length;
+  let actual=0, puntos=0, respondida=false, reloj=null, segs=0;
+  const catPts={}, catTot={};
+  preguntas.forEach(p=>{ catTot[p.cat]=(catTot[p.cat]||0)+1; catPts[p.cat]=catPts[p.cat]||0; });
+
+  const qArea=document.getElementById('question-area');
+  const barP=document.getElementById('progress-bar');
+  const txtP=document.getElementById('progress-text');
+
+  function render(i){
+    const p=preguntas[i];
+    const col=CC[p.cat]||'#0089cd';
+    const icon=CI[p.cat]||'📝';
+    const tLabel= p.t<=30?'⚡ Rápida': p.t<=45?'🕐 Media':'⏳ Difícil';
+    const opHtml=p.opciones.map(o=>
+      `<div class="option-item" data-val="${o.valor}" onclick="window.__qClick(this)"><span class="option-letter">${o.letra}.</span>${o.texto}</div>`
+    ).join('');
+    const isLarge = p.math && p.math.length<40 && !p.math.includes('blank');
+    const isShortBlank = p.math && p.math.includes('blank');
+    const mathClass = isLarge ? 'word-box large' : (isShortBlank ? 'word-box large' : 'word-box');
+    const mathBlock=p.math?`<div class="${mathClass}">${p.math}</div>`:'';
+    const btnLbl=i===total-1?'Ver resultados':'Siguiente ›';
+    qArea.innerHTML=`
+      <div class="question-meta">
+        <span class="cat-badge" style="background:${col}">${icon} ${p.cat}</span>
+        <span class="time-badge">${tLabel} · ${p.t}s</span>
+      </div>
+      <div class="question-header">${p.q}</div>
+      ${mathBlock}
+      <div class="options">${opHtml}</div>
+      <div class="btn-container">
+        <div class="primary-btn" onclick="window.__qNext()">${btnLbl}</div>
+      </div>`;
+    if(barP) barP.style.width=((i+1)/total*100)+'%';
+    if(txtP) txtP.textContent=`Pregunta ${i+1} de ${total}`;
+    iniciarReloj(p.t);
+  }
+
+  window.__qClick=function(el){
+    if(respondida) return;
+    pararReloj(); respondida=true;
+    const p=preguntas[actual];
+    const elegida=el.getAttribute('data-val');
+    if(elegida===p.correcta){
+      el.className='option-item correct disabled';
+      puntos++; catPts[p.cat]++;
+    } else {
+      el.className='option-item incorrect disabled';
+      const ok=qArea.querySelector(`.option-item[data-val="${p.correcta}"]`);
+      if(ok) ok.className='option-item correct disabled';
+    }
+    qArea.querySelectorAll('.option-item').forEach(o=>{
+      if(!o.className.includes('disabled')) o.className+=' disabled';
+    });
+  };
+
+  window.__qNext=function(){
+    pararReloj(); actual++; respondida=false;
+    if(actual<total) render(actual);
+    else mostrarResultados();
+  };
+
+  function iniciarReloj(s){
+    pararReloj(); segs=s; actualizarReloj();
+    reloj=setInterval(()=>{ segs--; actualizarReloj(); if(segs<=0) tiempoAgotado(); },1000);
+  }
+  function pararReloj(){ if(reloj){clearInterval(reloj);reloj=null;} }
+  function actualizarReloj(){
+    const p=preguntas[actual]||{t:60};
+    const tt=document.getElementById('timer-text');
+    const tb=document.getElementById('timer-bar');
+    const tc=document.getElementById('timer-container');
+    if(tt) tt.textContent=`⏱ Tiempo: ${segs}s`;
+    const pct=(segs/p.t)*100;
+    if(tb){
+      tb.style.width=pct+'%';
+      if(pct<=25){ tb.style.background='#dc3545'; if(tc) tc.className='timer-container timer-warning'; }
+      else if(pct<=50){ tb.style.background='linear-gradient(90deg,#ffc107,#dc3545)'; if(tc) tc.className='timer-container'; }
+      else{ tb.style.background='linear-gradient(90deg,#28a745,#ffc107,#dc3545)'; if(tc) tc.className='timer-container'; }
+    }
+  }
+  function tiempoAgotado(){
+    pararReloj(); respondida=true;
+    const p=preguntas[actual];
+    const ok=qArea.querySelector(`.option-item[data-val="${p.correcta}"]`);
+    if(ok) ok.className='option-item correct disabled';
+    qArea.querySelectorAll('.option-item').forEach(o=>{ if(!o.className.includes('disabled')) o.className+=' disabled'; });
+    const tt=document.getElementById('timer-text');
+    if(tt) tt.textContent='⏰ ¡Tiempo agotado!';
+    const tc=document.getElementById('timer-container');
+    if(tc) tc.className='timer-container timer-warning';
+  }
+
+  function mostrarResultados(){
+    pararReloj();
+    qArea.innerHTML='';
+    document.getElementById('timer-container').style.display='none';
+    const pct=Math.round(puntos/total*100);
+    document.getElementById('final-score').textContent=`${puntos} / ${total}  (${pct}%)`;
+    let msg='', emoji='';
+    if(pct>=85){ emoji='🏆'; msg='¡Excelente! Dominas la concordancia del español. ¡Estás listo!'; }
+    else if(pct>=70){ emoji='👍'; msg='¡Muy bien! Un poco más de práctica y lo logras.'; }
+    else if(pct>=50){ emoji='💪'; msg='Buen intento. Repasa las categorías en rojo y vuelve a intentarlo.'; }
+    else { emoji='📚'; msg='Sigue practicando. Identifica las categorías débiles y trabaja en ellas primero.'; }
+    document.getElementById('final-msg').textContent=emoji+' '+msg;
+
+    let html='<h3>Resultados por categoría:</h3>';
+    for(const cat of Object.keys(catTot)){
+      const s=catPts[cat]||0, t2=catTot[cat];
+      const p2=Math.round(s/t2*100);
+      const col=CC[cat]||'#0089cd';
+      const barCol=p2>=70?col:'#e53935';
+      html+=`<div class="cat-row">
+        <span class="cat-lbl">${CI[cat]} ${cat}</span>
+        <div class="cat-bar-out"><div class="cat-bar-in" style="width:${p2}%;background:${barCol}"></div></div>
+        <span class="cat-sc">${s}/${t2}</span>
+      </div>`;
+    }
+    document.getElementById('cat-results').innerHTML=html;
+
+    let minCat='', minPct=999;
+    for(const cat of Object.keys(catTot)){
+      const s=catPts[cat]||0, t2=catTot[cat], pp=s/t2;
+      if(pp<minPct){ minPct=pp; minCat=cat; }
+    }
+    document.getElementById('tip-box').textContent=
+      minPct<1 ? (TIPS[minCat]||'') : '✅ ¡Sin categorías con puntuación 0! Sigue practicando para mejorar los tiempos.';
+
+    document.getElementById('result-screen').className='result-screen';
+    document.querySelector('.quiz-progress-header').style.display='none';
+    document.getElementById('restart-btn').onclick=()=>window.location.reload();
+  }
+
+  render(0);
+
+})();
+</script>
+</body>
+</html>
