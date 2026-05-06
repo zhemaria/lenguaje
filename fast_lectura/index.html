@@ -1,283 +1,773 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Entrenador Profesional de Lectura GED</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Entrenador profesional de lectura — GED</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+    :root {
+      --cp: #0089cd; --cs: #005f8f; --ch: #00a8fc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 10px;
+      background: linear-gradient(135deg, #0089cd, #002d4d);
+      min-height: 100vh;
+    }
+    #app-container {
+      background: #fff; border-radius: 15px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      overflow: hidden; width: clamp(300px, 95%, 920px);
+      margin: 0 auto;
+    }
 
-<style>
-body {
-    font-family: 'Segoe UI', sans-serif;
-    margin: 0;
-    background: #eef2f7;
-}
+    /* HEADER */
+    .app-header {
+      background: linear-gradient(135deg, var(--cp), var(--cs));
+      color: #fff;
+      padding: 22px 24px;
+      text-align: center;
+    }
+    .app-header h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.3em, 4vw, 1.7em);
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .app-header p {
+      margin: 0;
+      font-size: clamp(0.85em, 2.3vw, 0.95em);
+      opacity: 0.95;
+      font-weight: 500;
+    }
 
-header {
-    background: #1e3a8a;
-    color: white;
-    padding: 20px;
-    text-align: center;
-}
+    /* ALERTA */
+    .alerta {
+      background: linear-gradient(135deg, #fff8e1, #ffecb3);
+      border-left: 4px solid #f39c12;
+      padding: 12px 18px;
+      margin: 0;
+      font-size: clamp(0.85em, 2.3vw, 0.95em);
+      color: #7a5a00;
+      font-weight: 600;
+      text-align: center;
+    }
 
-.container {
-    max-width: 950px;
-    margin: auto;
-    padding: 20px;
-}
+    /* PANEL CONTROLES */
+    .panel-controles {
+      padding: 18px 22px 4px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 14px;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .control-group label {
+      font-size: 0.78em;
+      font-weight: 600;
+      color: var(--cs);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .panel-controles select {
+      padding: 9px 11px;
+      font-family: inherit;
+      font-size: clamp(0.88em, 2.2vw, 0.96em);
+      font-weight: 500;
+      border: 2px solid #d0d8e0;
+      border-radius: 7px;
+      background: #f8fafc;
+      color: #2a3a4a;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .panel-controles select:hover { border-color: var(--ch); }
+    .panel-controles select:focus { outline: none; border-color: var(--cp); }
 
-.alerta {
-    background: #fff3cd;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-weight: bold;
-    text-align: center;
-}
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      grid-column: 1 / -1;
+      padding: 8px 12px;
+      background: #f0f7ff;
+      border-radius: 7px;
+      border: 1px dashed #b8d8ec;
+    }
+    .check-row input[type="checkbox"] {
+      width: 18px; height: 18px;
+      accent-color: var(--cp);
+      cursor: pointer;
+    }
+    .check-row label {
+      font-size: clamp(0.85em, 2.2vw, 0.92em);
+      font-weight: 500;
+      color: #333;
+      cursor: pointer;
+      user-select: none;
+    }
 
-.panel {
-    background: white;
-    padding: 25px;
-    border-radius: 10px;
-}
+    .btn-row {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .btn-action {
+      flex: 1;
+      min-width: 90px;
+      padding: 11px 14px;
+      border: none;
+      border-radius: 7px;
+      font-family: inherit;
+      font-size: clamp(0.85em, 2.2vw, 0.95em);
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+    .btn-iniciar { background: var(--cp); color: #fff; }
+    .btn-iniciar:hover { background: var(--ch); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,137,205,0.3); }
+    .btn-detener { background: #e74c3c; color: #fff; }
+    .btn-detener:hover { background: #c0392b; transform: translateY(-2px); }
+    .btn-reset { background: #6c757d; color: #fff; }
+    .btn-reset:hover { background: #5a6268; transform: translateY(-2px); }
 
-.controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 20px;
-}
+    /* PROGRESO Y STATS */
+    .progress-section { padding: 14px 22px 0; }
+    .progress-bar {
+      height: 14px;
+      background: #e9ecef;
+      border-radius: 7px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .progress-bar .progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--cp), var(--ch));
+      transition: width 0.2s ease-out;
+      border-radius: 7px;
+    }
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px 14px;
+      margin-top: 12px;
+    }
+    @media (min-width: 600px) {
+      .stats-row { grid-template-columns: repeat(4, 1fr); }
+    }
+    .stat-pill {
+      background: #f0f7ff;
+      border: 1px solid #d0e3f0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      text-align: center;
+      font-size: 0.78em;
+    }
+    .stat-pill .stat-label {
+      display: block;
+      color: var(--cs);
+      font-weight: 600;
+      font-size: 0.92em;
+      margin-bottom: 2px;
+    }
+    .stat-pill .stat-value {
+      color: var(--cp);
+      font-weight: 700;
+      font-size: 1.25em;
+      letter-spacing: 0.3px;
+    }
 
-select, button {
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 6px;
-    border: none;
-}
+    /* TEXTO */
+    #text-container {
+      margin: 18px 22px 0;
+      padding: 22px 24px;
+      background: linear-gradient(135deg, #f8fafc, #eef4f9);
+      border: 2px solid #d0e3f0;
+      border-radius: 10px;
+      font-size: clamp(1em, 2.6vw, 1.2em);
+      line-height: 1.95;
+      color: #1a3550;
+      max-height: 50vh;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+    #text-container:empty::before {
+      content: '👆 Selecciona un texto y presiona Iniciar';
+      color: #888;
+      font-style: italic;
+      font-size: 0.9em;
+    }
+    #text-container .titulo-texto {
+      font-size: 1.15em;
+      font-weight: 700;
+      color: var(--cs);
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--cp);
+      letter-spacing: 0.3px;
+    }
+    #text-container p {
+      margin: 0 0 16px;
+      text-align: justify;
+    }
+    .word {
+      padding: 2px 1px;
+      border-radius: 3px;
+      transition: background 0.12s ease;
+    }
+    .highlight {
+      background: linear-gradient(135deg, #ffe066, #ffd43b);
+      color: #1a1a1a;
+      box-shadow: 0 0 0 2px rgba(255,212,59,0.4);
+      font-weight: 600;
+    }
 
-button {
-    background: #2563eb;
-    color: white;
-    cursor: pointer;
-}
+    /* COMPRENSIÓN */
+    #comprension-section {
+      margin: 18px 22px 0;
+      padding: 22px 24px;
+      background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+      border: 2px solid #43a047;
+      border-radius: 10px;
+    }
+    #comprension-section.hidden { display: none; }
+    #comprension-section h2 {
+      margin: 0 0 14px;
+      color: #1b5e20;
+      font-size: clamp(1.1em, 2.8vw, 1.3em);
+      font-weight: 700;
+    }
+    .pregunta-block { margin-bottom: 18px; }
+    .pregunta-block .preg {
+      font-weight: 600;
+      color: #1b3550;
+      margin-bottom: 8px;
+      font-size: clamp(0.92em, 2.3vw, 1em);
+    }
+    .opcion-comp {
+      display: block;
+      padding: 9px 14px;
+      margin-bottom: 6px;
+      background: #fff;
+      border: 2px solid #cfd8dc;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: clamp(0.88em, 2.2vw, 0.96em);
+      user-select: none;
+    }
+    .opcion-comp:hover:not(.disabled) {
+      background: #e8f5e9;
+      border-color: #43a047;
+    }
+    .opcion-comp.selected {
+      background: #c8e6c9;
+      border-color: #2e7d32;
+      font-weight: 600;
+    }
+    .opcion-comp.correcta-comp {
+      background: #4caf50 !important;
+      color: #fff !important;
+      border-color: #4caf50 !important;
+    }
+    .opcion-comp.incorrecta-comp {
+      background: #f44336 !important;
+      color: #fff !important;
+      border-color: #f44336 !important;
+    }
+    .opcion-comp.disabled { cursor: not-allowed; opacity: 0.85; }
+    #resultado-comp {
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: #fff;
+      border-radius: 7px;
+      font-weight: 600;
+      text-align: center;
+      font-size: clamp(0.95em, 2.4vw, 1.05em);
+    }
+    #resultado-comp.hidden { display: none; }
 
-button:hover {
-    background: #1d4ed8;
-}
-
-#text-container {
-    font-size: 20px;
-    line-height: 2;
-}
-
-p {
-    margin-bottom: 18px;
-}
-
-.word {
-    padding: 3px;
-    transition: background 0.15s;
-}
-
-.highlight {
-    background: #c7d2fe;
-}
-
-.stats {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    margin-top: 15px;
-    font-weight: bold;
-}
-
-.progress-bar {
-    height: 20px;
-    background: #ddd;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-top: 10px;
-}
-
-.progress {
-    height: 100%;
-    width: 0%;
-    background: #22c55e;
-    transition: width 0.2s;
-}
-
-footer {
-    text-align: center;
-    padding: 15px;
-    color: gray;
-}
-</style>
+    /* ATRIBUCIÓN */
+    .atribucion {
+      text-align: center;
+      padding: 16px;
+      margin: 0;
+      color: #888;
+      font-size: 0.82em;
+    }
+  </style>
 </head>
-
 <body>
 
-<header>
-<h1>Entrenador Profesional de Lectura GED</h1>
-<p>Practica hasta alcanzar velocidad EXAMEN (300+ ppm)</p>
-</header>
+<div id="app-container">
 
-<div class="container">
+  <header class="app-header">
+    <h1>📖 Entrenador profesional de lectura — GED</h1>
+    <p>Practica hasta sostener velocidad de examen (300+ ppm) con buena comprensión</p>
+  </header>
 
-<div class="alerta">
-🎯 Lee hasta que puedas sostener velocidad EXAMEN con buena comprensión.
+  <div class="alerta">
+    🎯 Sube de velocidad gradualmente. Si pierdes comprensión, baja un nivel y consolida.
+  </div>
+
+  <div class="panel-controles">
+
+    <div class="control-group">
+      <label>📚 Texto</label>
+      <select id="textSelector"></select>
+    </div>
+
+    <div class="control-group">
+      <label>⚡ Velocidad</label>
+      <select id="speedSelector">
+        <option value="333">🐢 Lenta (~180 ppm)</option>
+        <option value="250">🚶 Media (~240 ppm)</option>
+        <option value="200" selected>🏃 Examen (~300 ppm)</option>
+        <option value="167">🚀 Avanzada (~360 ppm)</option>
+      </select>
+    </div>
+
+    <div class="check-row">
+      <input type="checkbox" id="metronomeToggle"/>
+      <label for="metronomeToggle">🥁 Activar metrónomo (suena con cada palabra)</label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-action btn-iniciar" id="btnStart">▶ Iniciar</button>
+      <button class="btn-action btn-detener" id="btnStop">■ Detener</button>
+      <button class="btn-action btn-reset" id="btnReset">↻ Reiniciar</button>
+    </div>
+
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-bar">
+      <div class="progress" id="progress"></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-pill">
+        <span class="stat-label">⏱ Tiempo</span>
+        <span class="stat-value"><span id="time">0</span>s</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-label">📊 PPM</span>
+        <span class="stat-value" id="wpm">0</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-label">📍 Progreso</span>
+        <span class="stat-value"><span id="percent">0</span>%</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-label">📝 Palabras</span>
+        <span class="stat-value" id="wordCount">0/0</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="text-container"></div>
+
+  <div id="comprension-section" class="hidden">
+    <h2>📚 Cuestionario de comprensión</h2>
+    <p style="margin-top:0;font-size:0.9em;color:#1b5e20">Comprueba si entendiste el texto que acabas de leer:</p>
+    <div id="preguntas-list"></div>
+    <button class="btn-action btn-iniciar" id="btn-evaluar" style="margin-top:8px">✓ Evaluar mis respuestas</button>
+    <div id="resultado-comp" class="hidden"></div>
+  </div>
+
+  <p class="atribucion">Creado por Prof. José M. Fernández con Claude Opus 4.7</p>
+
 </div>
-
-<div class="panel">
-
-<div class="controls">
-<select id="speedSelector">
-<option value="333">Lenta (~180 ppm)</option>
-<option value="250">Media (~240 ppm)</option>
-<option value="200">Examen (~300 ppm)</option>
-</select>
-
-<label>
-<input type="checkbox" id="metronomeToggle">
- Activar metrónomo
-</label>
-
-<button onclick="startReading()">Iniciar</button>
-<button onclick="stopReading()">Detener</button>
-</div>
-
-<div class="progress-bar">
-<div class="progress" id="progress"></div>
-</div>
-
-<div id="text-container"></div>
-
-<div class="stats">
-<div>Tiempo: <span id="time">0</span>s</div>
-<div>PPM actuales: <span id="wpm">0</span></div>
-<div>Progreso: <span id="percent">0</span>%</div>
-</div>
-
-</div>
-</div>
-
-<footer>
-Entrenamiento estructurado para éxito en GED
-</footer>
 
 <script>
+(function(){
+  if(window.entrenadorLecturaIniciado) return;
+  window.entrenadorLecturaIniciado = true;
 
-const text = `
-La educación de adultos representa una segunda oportunidad para millones de personas que no completaron sus estudios en el momento tradicional. Obtener el GED no solo significa aprobar un examen, sino demostrar disciplina, constancia y compromiso personal. Para muchos estudiantes, regresar al estudio implica superar inseguridades acumuladas durante años.
+  /* ─── TEXTOS GED ─── */
+  const TEXTOS = [
+    {
+      titulo: '📚 La educación de adultos',
+      contenido: [
+        'La educación de adultos representa una segunda oportunidad para millones de personas que no completaron sus estudios en el momento tradicional. Obtener el GED no solo significa aprobar un examen, sino demostrar disciplina, constancia y compromiso personal. Para muchos estudiantes, regresar al estudio implica superar inseguridades acumuladas durante años.',
+        'Los textos del GED presentan información en diversos formatos: narrativo, histórico, científico y argumentativo. Cada tipo exige habilidades distintas. Algunos requieren identificar ideas principales; otros, interpretar datos o analizar evidencias. Además, el tiempo disponible durante el examen es limitado, lo que convierte la velocidad de lectura en un factor decisivo.',
+        'El cerebro puede entrenarse para procesar grupos de palabras en lugar de leer término por término. Los lectores eficientes amplían su visión periférica y reducen la subvocalización. Este proceso requiere práctica constante. Al repetir ejercicios cronometrados, el estudiante mejora su fluidez sin sacrificar comprensión.',
+        'Administrar el tiempo durante el examen es fundamental. Quienes leen con mayor rapidez pueden dedicar más minutos a preguntas complejas o revisar respuestas antes de finalizar. Alcanzar una velocidad de trescientas palabras por minuto con comprensión sólida coloca al estudiante en una posición competitiva.',
+        'El progreso no ocurre de un día para otro. La mejora surge del entrenamiento estructurado y la repetición consciente. Practicar hasta alcanzar la velocidad de examen permite desarrollar confianza y seguridad. Esa confianza se refleja en el desempeño final y en la capacidad de enfrentar nuevos retos académicos y profesionales.'
+      ],
+      preguntas: [
+        {
+          q: '¿Qué representa la educación de adultos según el texto?',
+          op: ['Una pérdida de tiempo', 'Una segunda oportunidad', 'Un requisito laboral', 'Una obligación legal'],
+          correct: 1
+        },
+        {
+          q: '¿Qué pueden hacer los lectores eficientes?',
+          op: ['Leer palabra por palabra lentamente', 'Procesar grupos de palabras y reducir la subvocalización', 'Memorizar todo el texto', 'Saltarse párrafos completos'],
+          correct: 1
+        },
+        {
+          q: '¿Por qué es importante administrar el tiempo en el examen?',
+          op: ['Para terminar antes y salir', 'Para tener más minutos en preguntas complejas y revisar respuestas', 'Para descansar entre secciones', 'Para hacer pausas largas'],
+          correct: 1
+        }
+      ]
+    },
+    {
+      titulo: '🌍 El cambio climático',
+      contenido: [
+        'El cambio climático constituye uno de los mayores desafíos del siglo XXI. Las temperaturas globales han aumentado de manera sostenida durante las últimas décadas debido a la acumulación de gases de efecto invernadero en la atmósfera. La quema de combustibles fósiles, la deforestación y ciertas prácticas agrícolas son las principales fuentes de estos gases.',
+        'Los efectos del calentamiento global se manifiestan de diversas formas: derretimiento de los glaciares, aumento del nivel del mar, olas de calor más frecuentes y eventos climáticos extremos. Estos fenómenos afectan tanto a los ecosistemas naturales como a las comunidades humanas, especialmente en zonas costeras y regiones vulnerables.',
+        'Los científicos coinciden en que la acción humana es la causa principal del cambio climático actual. Los registros históricos muestran que el ritmo de calentamiento de las últimas décadas no tiene precedentes en miles de años. Esta evidencia se basa en mediciones directas, núcleos de hielo y análisis de capas geológicas.',
+        'Las energías renovables representan una solución prometedora. La energía solar, eólica e hidroeléctrica permiten generar electricidad sin emitir gases contaminantes. Muchos países han adoptado políticas para acelerar la transición hacia estas fuentes limpias, con resultados alentadores en términos de reducción de emisiones.',
+        'Sin embargo, la acción individual también cuenta. Reducir el consumo energético, reciclar materiales, optar por transporte sostenible y apoyar productos locales son decisiones cotidianas con impacto ambiental positivo. Cada persona contribuye a un futuro más equilibrado mediante elecciones conscientes y responsables.'
+      ],
+      preguntas: [
+        {
+          q: '¿Cuál es la causa principal del cambio climático según el texto?',
+          op: ['Los ciclos naturales del sol', 'La acción humana', 'Las erupciones volcánicas', 'Los movimientos tectónicos'],
+          correct: 1
+        },
+        {
+          q: '¿Qué son las energías renovables?',
+          op: ['Combustibles fósiles modernizados', 'Fuentes que generan electricidad sin emitir gases contaminantes', 'Tecnologías nucleares avanzadas', 'Métodos de combustión más eficientes'],
+          correct: 1
+        },
+        {
+          q: '¿Qué se concluye sobre la acción individual frente al cambio climático?',
+          op: ['No tiene ningún impacto', 'Solo los gobiernos pueden actuar', 'Cada persona contribuye mediante elecciones conscientes', 'Es responsabilidad únicamente de las empresas'],
+          correct: 2
+        }
+      ]
+    },
+    {
+      titulo: '🧠 La inteligencia emocional',
+      contenido: [
+        'La inteligencia emocional es la capacidad de reconocer, comprender y gestionar las propias emociones, así como las de otras personas. A diferencia del coeficiente intelectual tradicional, esta habilidad puede desarrollarse a lo largo de la vida mediante práctica consciente y reflexión personal.',
+        'Daniel Goleman, autor que popularizó este concepto, identificó cinco componentes principales: autoconocimiento, autorregulación, motivación, empatía y habilidades sociales. Cada uno cumple un papel específico en cómo nos relacionamos con nuestro entorno y enfrentamos las dificultades cotidianas.',
+        'El autoconocimiento permite identificar lo que sentimos en cada momento y por qué. La autorregulación nos ayuda a controlar reacciones impulsivas. La motivación interna mantiene el esfuerzo ante los obstáculos. La empatía facilita comprender el punto de vista ajeno, mientras que las habilidades sociales nos permiten construir relaciones saludables.',
+        'En el ámbito laboral, la inteligencia emocional se considera tan importante como las competencias técnicas. Los líderes con esta capacidad logran mejor comunicación con sus equipos, resuelven conflictos con mayor eficacia y crean ambientes de trabajo positivos. Estos factores influyen directamente en la productividad y el bienestar colectivo.',
+        'En la vida personal, las personas emocionalmente inteligentes manejan mejor el estrés, mantienen relaciones más estables y enfrentan los cambios con flexibilidad. Cultivar esta habilidad requiere paciencia, observación interna y disposición para aprender de cada experiencia, sin importar la edad ni el contexto cultural de cada persona.'
+      ],
+      preguntas: [
+        {
+          q: '¿Qué es la inteligencia emocional según el texto?',
+          op: ['Un tipo de coeficiente intelectual', 'La capacidad de reconocer, comprender y gestionar emociones', 'Una habilidad innata e inalterable', 'Un examen psicológico estandarizado'],
+          correct: 1
+        },
+        {
+          q: '¿Cuántos componentes principales identificó Daniel Goleman?',
+          op: ['Tres', 'Cuatro', 'Cinco', 'Seis'],
+          correct: 2
+        },
+        {
+          q: '¿Qué consecuencia tiene la inteligencia emocional en el ámbito laboral?',
+          op: ['Reduce la necesidad de competencias técnicas', 'Mejora la comunicación, resolución de conflictos y ambiente de trabajo', 'Aumenta la presión sobre los empleados', 'Solo beneficia a los altos directivos'],
+          correct: 1
+        }
+      ]
+    },
+    {
+      titulo: '⚖️ Los derechos civiles en Estados Unidos',
+      contenido: [
+        'El movimiento por los derechos civiles en Estados Unidos transformó profundamente la sociedad durante el siglo XX. Activistas, líderes y ciudadanos comunes lucharon contra la segregación racial y la discriminación legal que afectaba a millones de personas, especialmente a la comunidad afroamericana.',
+        'Martin Luther King Jr. emergió como una figura central de esta lucha. Su filosofía de resistencia no violenta, inspirada en Mahatma Gandhi, marcó el carácter del movimiento. Su famoso discurso de mil novecientos sesenta y tres frente al Monumento a Lincoln en Washington se convirtió en un símbolo de esperanza y unidad para generaciones posteriores.',
+        'La Ley de Derechos Civiles de mil novecientos sesenta y cuatro representó un logro histórico. Esta legislación prohibió la discriminación basada en raza, color, religión, sexo u origen nacional en lugares públicos, escuelas y centros laborales. Junto con la Ley del Derecho al Voto del año siguiente, cambió radicalmente el panorama jurídico del país.',
+        'Sin embargo, la batalla no terminó con las leyes. Las prácticas discriminatorias persistieron de manera sutil en muchos sectores. Las desigualdades económicas, educativas y residenciales continuaron afectando a comunidades minoritarias durante décadas, mostrando que el cambio legal no garantiza automáticamente la equidad social.',
+        'Hoy en día, el legado del movimiento sigue vivo. Nuevas generaciones continúan luchando por la justicia social, los derechos de inmigrantes y la igualdad económica. La historia de los derechos civiles enseña que el progreso requiere organización, paciencia y compromiso sostenido, valores que siguen siendo esenciales en cualquier sociedad democrática del mundo actual.'
+      ],
+      preguntas: [
+        {
+          q: '¿Quién fue una figura central del movimiento por los derechos civiles?',
+          op: ['Mahatma Gandhi', 'Martin Luther King Jr.', 'Abraham Lincoln', 'John F. Kennedy'],
+          correct: 1
+        },
+        {
+          q: '¿Qué prohibió la Ley de Derechos Civiles de 1964?',
+          op: ['La libertad de expresión', 'La discriminación basada en raza, color, religión, sexo u origen nacional', 'El derecho al voto de las minorías', 'La organización de protestas'],
+          correct: 1
+        },
+        {
+          q: '¿Qué enseña la historia de los derechos civiles según el texto?',
+          op: ['Que el cambio legal garantiza automáticamente la equidad', 'Que el progreso requiere organización, paciencia y compromiso sostenido', 'Que las protestas no funcionan', 'Que las leyes son suficientes por sí solas'],
+          correct: 1
+        }
+      ]
+    }
+  ];
 
-Los textos del GED presentan información en diversos formatos: narrativo, histórico, científico y argumentativo. Cada tipo exige habilidades distintas. Algunos requieren identificar ideas principales; otros, interpretar datos o analizar evidencias. Además, el tiempo disponible durante el examen es limitado, lo que convierte la velocidad de lectura en un factor decisivo.
+  /* ─── ELEMENTOS ─── */
+  const $ = id => document.getElementById(id);
+  const textSelector = $('textSelector');
+  const speedSelector = $('speedSelector');
+  const metroToggle = $('metronomeToggle');
+  const container = $('text-container');
+  const progressBar = $('progress');
+  const btnStart = $('btnStart');
+  const btnStop = $('btnStop');
+  const btnReset = $('btnReset');
+  const compSection = $('comprension-section');
+  const preguntasList = $('preguntas-list');
+  const btnEvaluar = $('btn-evaluar');
+  const resultadoComp = $('resultado-comp');
 
-El cerebro puede entrenarse para procesar grupos de palabras en lugar de leer término por término. Los lectores eficientes amplían su visión periférica y reducen la subvocalización. Este proceso requiere práctica constante. Al repetir ejercicios cronometrados, el estudiante mejora su fluidez sin sacrificar comprensión.
+  /* ─── ESTADO ─── */
+  let words = [];
+  let totalWords = 0;
+  let index = 0;
+  let interval = null;
+  let timerInterval = null;
+  let metronomeInterval = null;
+  let startTime = 0;
+  let leyendo = false;
+  let textoCompletado = false;
 
-Administrar el tiempo durante el examen es fundamental. Quienes leen con mayor rapidez pueden dedicar más minutos a preguntas complejas o revisar respuestas antes de finalizar. Alcanzar una velocidad de trescientas palabras por minuto con comprensión sólida coloca al estudiante en una posición competitiva.
+  /* ─── POBLAR SELECTOR DE TEXTOS ─── */
+  TEXTOS.forEach((t,i)=>{
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = t.titulo;
+    textSelector.appendChild(opt);
+  });
 
-El progreso no ocurre de un día para otro. La mejora surge del entrenamiento estructurado y la repetición consciente. Practicar hasta alcanzar la velocidad de examen permite desarrollar confianza y seguridad. Esa confianza se refleja en el desempeño final y en la capacidad de enfrentar nuevos retos académicos y profesionales.
-`;
+  /* ─── CARGAR TEXTO ─── */
+  function loadText(){
+    container.innerHTML = '';
+    words = [];
+    const t = TEXTOS[parseInt(textSelector.value)];
 
-let paragraphs = text.trim().split("\n\n");
-let words = [];
-let container = document.getElementById("text-container");
-let interval;
-let index = 0;
-let startTime;
-let timerInterval;
-let metronome;
-let totalWords;
+    // Título
+    const titulo = document.createElement('div');
+    titulo.className = 'titulo-texto';
+    titulo.textContent = t.titulo;
+    container.appendChild(titulo);
 
-function loadText() {
-container.innerHTML = "";
-words = [];
+    // Párrafos
+    t.contenido.forEach(parrafo => {
+      const p = document.createElement('p');
+      const splitWords = parrafo.split(/\s+/);
+      splitWords.forEach(word => {
+        const span = document.createElement('span');
+        span.textContent = word + ' ';
+        span.classList.add('word');
+        p.appendChild(span);
+        words.push(span);
+      });
+      container.appendChild(p);
+    });
 
-paragraphs.forEach(paragraph => {
-let p = document.createElement("p");
-let splitWords = paragraph.split(" ");
-splitWords.forEach(word => {
-let span = document.createElement("span");
-span.textContent = word + " ";
-span.classList.add("word");
-p.appendChild(span);
-words.push(span);
-});
-container.appendChild(p);
-});
+    totalWords = words.length;
+    $('wordCount').textContent = `0/${totalWords}`;
+    $('percent').textContent = '0';
+    $('wpm').textContent = '0';
+    $('time').textContent = '0';
+    progressBar.style.width = '0%';
+    index = 0;
+  }
 
-totalWords = words.length;
-}
+  /* ─── METRÓNOMO ─── */
+  function tick(){
+    if(!window.audioCtx){
+      try{
+        window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch(e){ return; }
+    }
+    const oscillator = window.audioCtx.createOscillator();
+    const gainNode = window.audioCtx.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(600, window.audioCtx.currentTime);
+    gainNode.gain.setValueAtTime(0.03, window.audioCtx.currentTime);
+    oscillator.connect(gainNode);
+    gainNode.connect(window.audioCtx.destination);
+    oscillator.start();
+    oscillator.stop(window.audioCtx.currentTime + 0.03);
+  }
 
-function startReading() {
-stopReading();
-loadText();
+  /* ─── INICIAR LECTURA ─── */
+  function startReading(){
+    if(leyendo) return;
+    if(words.length === 0 || index >= words.length){
+      loadText();
+    }
+    leyendo = true;
+    textoCompletado = false;
+    compSection.classList.add('hidden');
+    resultadoComp.classList.add('hidden');
 
-let speed = parseInt(document.getElementById("speedSelector").value);
-index = 0;
-startTime = Date.now();
+    const speed = parseInt(speedSelector.value);
+    startTime = Date.now();
 
-timerInterval = setInterval(updateStats, 500);
+    timerInterval = setInterval(updateStats, 250);
 
-if(document.getElementById("metronomeToggle").checked){
+    if(metroToggle.checked){
+      metronomeInterval = setInterval(tick, speed);
+    }
 
-if(!window.audioCtx){
-window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-}
+    interval = setInterval(()=>{
+      if(index > 0 && words[index - 1]){
+        words[index - 1].classList.remove('highlight');
+      }
+      if(index < words.length){
+        words[index].classList.add('highlight');
+        // Auto-scroll a la palabra activa
+        const word = words[index];
+        const containerRect = container.getBoundingClientRect();
+        const wordRect = word.getBoundingClientRect();
+        if(wordRect.bottom > containerRect.bottom - 30 || wordRect.top < containerRect.top + 30){
+          word.scrollIntoView({behavior:'smooth', block:'center'});
+        }
+        index++;
+        const percent = Math.floor((index/totalWords)*100);
+        progressBar.style.width = percent + '%';
+        $('percent').textContent = percent;
+        $('wordCount').textContent = `${index}/${totalWords}`;
+      } else {
+        terminarLectura();
+      }
+    }, speed);
+  }
 
-metronome = setInterval(() => {
+  /* ─── DETENER ─── */
+  function stopReading(){
+    if(interval) clearInterval(interval);
+    if(timerInterval) clearInterval(timerInterval);
+    if(metronomeInterval) clearInterval(metronomeInterval);
+    interval = timerInterval = metronomeInterval = null;
+    leyendo = false;
+  }
 
-let oscillator = window.audioCtx.createOscillator();
-let gainNode = window.audioCtx.createGain();
+  /* ─── TERMINAR LECTURA ─── */
+  function terminarLectura(){
+    stopReading();
+    textoCompletado = true;
+    if(words[index - 1]){ words[index - 1].classList.remove('highlight'); }
+    mostrarComprension();
+  }
 
-oscillator.type = "sine"; // más suave que square
-oscillator.frequency.setValueAtTime(600, window.audioCtx.currentTime);
+  /* ─── REINICIAR ─── */
+  function resetReading(){
+    stopReading();
+    if(words.length > 0){
+      words.forEach(w => w.classList.remove('highlight'));
+    }
+    index = 0;
+    progressBar.style.width = '0%';
+    $('percent').textContent = '0';
+    $('wpm').textContent = '0';
+    $('time').textContent = '0';
+    $('wordCount').textContent = `0/${totalWords}`;
+    compSection.classList.add('hidden');
+    resultadoComp.classList.add('hidden');
+  }
 
-gainNode.gain.setValueAtTime(0.03, window.audioCtx.currentTime); // volumen muy bajo
+  /* ─── ACTUALIZAR STATS ─── */
+  function updateStats(){
+    const elapsed = (Date.now() - startTime)/1000;
+    $('time').textContent = elapsed.toFixed(1);
+    if(elapsed > 0){
+      const wpm = Math.round((index/elapsed)*60);
+      $('wpm').textContent = wpm;
+    }
+  }
 
-oscillator.connect(gainNode);
-gainNode.connect(window.audioCtx.destination);
+  /* ─── COMPRENSIÓN ─── */
+  function mostrarComprension(){
+    const t = TEXTOS[parseInt(textSelector.value)];
+    preguntasList.innerHTML = '';
+    t.preguntas.forEach((preg,i)=>{
+      const block = document.createElement('div');
+      block.className = 'pregunta-block';
+      const pTexto = document.createElement('div');
+      pTexto.className = 'preg';
+      pTexto.textContent = `${i+1}. ${preg.q}`;
+      block.appendChild(pTexto);
+      preg.op.forEach((op,j)=>{
+        const div = document.createElement('div');
+        div.className = 'opcion-comp';
+        div.textContent = String.fromCharCode(65+j) + '. ' + op;
+        div.dataset.preg = i;
+        div.dataset.op = j;
+        div.onclick = () => seleccionarOpcion(div, i, j);
+        block.appendChild(div);
+      });
+      preguntasList.appendChild(block);
+    });
+    compSection.classList.remove('hidden');
+    setTimeout(()=>{
+      compSection.scrollIntoView({behavior:'smooth', block:'start'});
+    }, 200);
+  }
 
-oscillator.start();
-oscillator.stop(window.audioCtx.currentTime + 0.03);
+  function seleccionarOpcion(el, pregIdx, opIdx){
+    if(el.classList.contains('disabled')) return;
+    // Quitar selected previo en esta pregunta
+    document.querySelectorAll(`.opcion-comp[data-preg="${pregIdx}"]`).forEach(o=>{
+      o.classList.remove('selected');
+    });
+    el.classList.add('selected');
+  }
 
-}, speed);
-}
+  function evaluarComprension(){
+    const t = TEXTOS[parseInt(textSelector.value)];
+    let aciertos = 0;
+    t.preguntas.forEach((preg,i)=>{
+      const seleccionada = document.querySelector(`.opcion-comp.selected[data-preg="${i}"]`);
+      const opciones = document.querySelectorAll(`.opcion-comp[data-preg="${i}"]`);
+      opciones.forEach(o=>{
+        o.classList.add('disabled');
+        const opIdx = parseInt(o.dataset.op);
+        if(opIdx === preg.correct){
+          o.classList.add('correcta-comp');
+        } else if(seleccionada && parseInt(seleccionada.dataset.op) === opIdx){
+          o.classList.add('incorrecta-comp');
+        }
+      });
+      if(seleccionada && parseInt(seleccionada.dataset.op) === preg.correct){
+        aciertos++;
+      }
+    });
+    const total = t.preguntas.length;
+    const pct = Math.round((aciertos/total)*100);
+    let emoji='', msg='';
+    if(pct === 100){ emoji='🏆'; msg='¡Perfecto! Comprensión total a esa velocidad.'; }
+    else if(pct >= 67){ emoji='👍'; msg='¡Buena comprensión! Puedes intentar la siguiente velocidad.'; }
+    else if(pct >= 34){ emoji='💪'; msg='Comprensión media. Repite el texto a esta velocidad antes de subir.'; }
+    else { emoji='📚'; msg='Baja un nivel de velocidad y consolida la comprensión.'; }
+    resultadoComp.innerHTML = `${emoji} <strong>${aciertos}/${total} correctas (${pct}%)</strong> — ${msg}`;
+    resultadoComp.classList.remove('hidden');
+    btnEvaluar.disabled = true;
+    btnEvaluar.style.opacity = '0.5';
+    btnEvaluar.style.cursor = 'not-allowed';
+  }
 
-interval = setInterval(() => {
+  /* ─── EVENT LISTENERS ─── */
+  btnStart.onclick = startReading;
+  btnStop.onclick = stopReading;
+  btnReset.onclick = resetReading;
+  btnEvaluar.onclick = evaluarComprension;
 
-if(index > 0) words[index - 1].classList.remove("highlight");
+  textSelector.onchange = ()=>{
+    stopReading();
+    loadText();
+    btnEvaluar.disabled = false;
+    btnEvaluar.style.opacity = '1';
+    btnEvaluar.style.cursor = 'pointer';
+    compSection.classList.add('hidden');
+  };
 
-if(index < words.length){
-words[index].classList.add("highlight");
-index++;
+  /* ─── INICIO ─── */
+  loadText();
 
-let percent = Math.floor((index/totalWords)*100);
-document.getElementById("progress").style.width = percent + "%";
-document.getElementById("percent").innerText = percent;
-
-}else{
-stopReading();
-}
-
-}, speed);
-}
-
-function stopReading(){
-clearInterval(interval);
-clearInterval(timerInterval);
-clearInterval(metronome);
-}
-
-function updateStats(){
-let elapsed = (Date.now() - startTime)/1000;
-document.getElementById("time").innerText = elapsed.toFixed(1);
-
-let wpm = Math.round((index/elapsed)*60);
-document.getElementById("wpm").innerText = wpm;
-}
-
-loadText();
-
+})();
 </script>
 
 </body>
