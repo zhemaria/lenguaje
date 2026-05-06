@@ -1,1 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrenador Profesional de Lectura GED</title>
 
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    background: #eef2f7;
+}
+
+header {
+    background: #1e3a8a;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.container {
+    max-width: 950px;
+    margin: auto;
+    padding: 20px;
+}
+
+.alerta {
+    background: #fff3cd;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.panel {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+select, button {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+}
+
+button {
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+#text-container {
+    font-size: 20px;
+    line-height: 2;
+}
+
+p {
+    margin-bottom: 18px;
+}
+
+.word {
+    padding: 3px;
+    transition: background 0.15s;
+}
+
+.highlight {
+    background: #c7d2fe;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.progress-bar {
+    height: 20px;
+    background: #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.progress {
+    height: 100%;
+    width: 0%;
+    background: #22c55e;
+    transition: width 0.2s;
+}
+
+footer {
+    text-align: center;
+    padding: 15px;
+    color: gray;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Entrenador Profesional de Lectura GED</h1>
+<p>Practica hasta alcanzar velocidad EXAMEN (300+ ppm)</p>
+</header>
+
+<div class="container">
+
+<div class="alerta">
+🎯 Lee hasta que puedas sostener velocidad EXAMEN con buena comprensión.
+</div>
+
+<div class="panel">
+
+<div class="controls">
+<select id="speedSelector">
+<option value="333">Lenta (~180 ppm)</option>
+<option value="250">Media (~240 ppm)</option>
+<option value="200">Examen (~300 ppm)</option>
+</select>
+
+<label>
+<input type="checkbox" id="metronomeToggle">
+ Activar metrónomo
+</label>
+
+<button onclick="startReading()">Iniciar</button>
+<button onclick="stopReading()">Detener</button>
+</div>
+
+<div class="progress-bar">
+<div class="progress" id="progress"></div>
+</div>
+
+<div id="text-container"></div>
+
+<div class="stats">
+<div>Tiempo: <span id="time">0</span>s</div>
+<div>PPM actuales: <span id="wpm">0</span></div>
+<div>Progreso: <span id="percent">0</span>%</div>
+</div>
+
+</div>
+</div>
+
+<footer>
+Entrenamiento estructurado para éxito en GED
+</footer>
+
+<script>
+
+const text = `
+La educación de adultos representa una segunda oportunidad para millones de personas que no completaron sus estudios en el momento tradicional. Obtener el GED no solo significa aprobar un examen, sino demostrar disciplina, constancia y compromiso personal. Para muchos estudiantes, regresar al estudio implica superar inseguridades acumuladas durante años.
+
+Los textos del GED presentan información en diversos formatos: narrativo, histórico, científico y argumentativo. Cada tipo exige habilidades distintas. Algunos requieren identificar ideas principales; otros, interpretar datos o analizar evidencias. Además, el tiempo disponible durante el examen es limitado, lo que convierte la velocidad de lectura en un factor decisivo.
+
+El cerebro puede entrenarse para procesar grupos de palabras en lugar de leer término por término. Los lectores eficientes amplían su visión periférica y reducen la subvocalización. Este proceso requiere práctica constante. Al repetir ejercicios cronometrados, el estudiante mejora su fluidez sin sacrificar comprensión.
+
+Administrar el tiempo durante el examen es fundamental. Quienes leen con mayor rapidez pueden dedicar más minutos a preguntas complejas o revisar respuestas antes de finalizar. Alcanzar una velocidad de trescientas palabras por minuto con comprensión sólida coloca al estudiante en una posición competitiva.
+
+El progreso no ocurre de un día para otro. La mejora surge del entrenamiento estructurado y la repetición consciente. Practicar hasta alcanzar la velocidad de examen permite desarrollar confianza y seguridad. Esa confianza se refleja en el desempeño final y en la capacidad de enfrentar nuevos retos académicos y profesionales.
+`;
+
+let paragraphs = text.trim().split("\n\n");
+let words = [];
+let container = document.getElementById("text-container");
+let interval;
+let index = 0;
+let startTime;
+let timerInterval;
+let metronome;
+let totalWords;
+
+function loadText() {
+container.innerHTML = "";
+words = [];
+
+paragraphs.forEach(paragraph => {
+let p = document.createElement("p");
+let splitWords = paragraph.split(" ");
+splitWords.forEach(word => {
+let span = document.createElement("span");
+span.textContent = word + " ";
+span.classList.add("word");
+p.appendChild(span);
+words.push(span);
+});
+container.appendChild(p);
+});
+
+totalWords = words.length;
+}
+
+function startReading() {
+stopReading();
+loadText();
+
+let speed = parseInt(document.getElementById("speedSelector").value);
+index = 0;
+startTime = Date.now();
+
+timerInterval = setInterval(updateStats, 500);
+
+if(document.getElementById("metronomeToggle").checked){
+
+if(!window.audioCtx){
+window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+metronome = setInterval(() => {
+
+let oscillator = window.audioCtx.createOscillator();
+let gainNode = window.audioCtx.createGain();
+
+oscillator.type = "sine"; // más suave que square
+oscillator.frequency.setValueAtTime(600, window.audioCtx.currentTime);
+
+gainNode.gain.setValueAtTime(0.03, window.audioCtx.currentTime); // volumen muy bajo
+
+oscillator.connect(gainNode);
+gainNode.connect(window.audioCtx.destination);
+
+oscillator.start();
+oscillator.stop(window.audioCtx.currentTime + 0.03);
+
+}, speed);
+}
+
+interval = setInterval(() => {
+
+if(index > 0) words[index - 1].classList.remove("highlight");
+
+if(index < words.length){
+words[index].classList.add("highlight");
+index++;
+
+let percent = Math.floor((index/totalWords)*100);
+document.getElementById("progress").style.width = percent + "%";
+document.getElementById("percent").innerText = percent;
+
+}else{
+stopReading();
+}
+
+}, speed);
+}
+
+function stopReading(){
+clearInterval(interval);
+clearInterval(timerInterval);
+clearInterval(metronome);
+}
+
+function updateStats(){
+let elapsed = (Date.now() - startTime)/1000;
+document.getElementById("time").innerText = elapsed.toFixed(1);
+
+let wpm = Math.round((index/elapsed)*60);
+document.getElementById("wpm").innerText = wpm;
+}
+
+loadText();
+
+</script>
+
+</body>
+</html>
