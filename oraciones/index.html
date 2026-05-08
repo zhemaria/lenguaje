@@ -122,6 +122,69 @@
     color: #6b7280;
   }
 
+  /* ========== Examen completo (card destacada) ========== */
+  .examen-card {
+    margin-top: 22px;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid #f59e0b;
+    border-radius: 14px;
+    padding: 18px 18px 20px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .examen-card:hover, .examen-card:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25);
+    border-color: #d97706;
+    outline: none;
+  }
+  .examen-badge {
+    position: absolute;
+    top: -10px;
+    left: 18px;
+    background: #d97706;
+    color: #ffffff;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .examen-contenido {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 4px;
+  }
+  .examen-icon {
+    font-size: 2.2rem;
+    flex-shrink: 0;
+  }
+  .examen-texto { flex: 1; }
+  .examen-nombre {
+    font-weight: 700;
+    color: #92400e;
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+  }
+  .examen-desc {
+    font-size: 0.85rem;
+    color: #78350f;
+    line-height: 1.5;
+  }
+  .examen-flecha {
+    font-size: 1.4rem;
+    color: #92400e;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+  }
+  .examen-card:hover .examen-flecha { transform: translateX(4px); }
+
   /* ========== Quiz ========== */
   .quiz-header {
     display: flex;
@@ -439,7 +502,7 @@
   <section class="pantalla activa" id="pantalla-inicio">
     <div class="intro">
       <h2>Elige un modo de práctica</h2>
-      <p>Cada ronda tiene 10 oraciones. Lee las cuatro versiones y selecciona la que está escrita correctamente. Al final recibirás retroalimentación sobre cada regla.</p>
+      <p>Cada ronda de práctica tiene 10 oraciones. Lee las cuatro versiones y selecciona la que está escrita correctamente. Al final recibirás retroalimentación sobre cada regla.</p>
 
       <div class="modos-grid">
         <div class="modo-card" tabindex="0" role="button" data-modo="ortografia" aria-label="Modo Ortografía">
@@ -461,6 +524,18 @@
           <span class="modo-icon">🎲</span>
           <div class="modo-nombre">Mixto</div>
           <div class="modo-desc">Las tres categorías combinadas</div>
+        </div>
+      </div>
+
+      <div class="examen-card" tabindex="0" role="button" data-modo="examen" aria-label="Examen completo">
+        <span class="examen-badge">Recomendado tras practicar</span>
+        <div class="examen-contenido">
+          <span class="examen-icon">🎓</span>
+          <div class="examen-texto">
+            <div class="examen-nombre">Examen completo</div>
+            <div class="examen-desc">30 preguntas mezcladas de las tres categorías. Te recomendamos practicar primero los modos individuales antes de tomar el examen.</div>
+          </div>
+          <span class="examen-flecha">→</span>
         </div>
       </div>
     </div>
@@ -506,7 +581,7 @@
     </div>
 
     <div class="botones-fila">
-      <button class="btn btn-secundario" id="btn-cambiar-modo">Cambiar modo</button>
+      <button class="btn btn-secundario" id="btn-cambiar-modo">Elegir otro modo</button>
       <button class="btn" id="btn-otra-ronda">Otra ronda</button>
     </div>
   </section>
@@ -574,6 +649,70 @@
       opciones:["La acción del gobierno generó muchas reacciones.","La ación del gobierno generó muchas reaciones.","La acción del gobierno generó muchas reaciones.","La ación del gobierno generó muchas reacciones."],
       correcta:0,
       explicacion:"Las palabras terminadas en '-cción' llevan doble c cuando vienen de palabras con '-cto': acto→acción, reactor→reacción." },
+    { id:37, categoria:'ortografia', subtipo:'Tilde en hiatos',
+      opciones:["El país enfrenta una crisis económica importante.","El pais enfrenta una crisis económica importante.","El paìs enfrenta una crisis económica importante.","El país enfrenta una crisís económica importante."],
+      correcta:0,
+      explicacion:"'País' tiene hiato (vocal débil tónica + vocal fuerte). Se rompe el diptongo con tilde sobre la i. Mismo caso: María, río, oír, baúl, raíz." },
+    { id:38, categoria:'ortografia', subtipo:'Tilde en palabras llanas',
+      opciones:["El árbol del jardín perdió todas sus hojas.","El arbol del jardin perdió todas sus hojas.","El árból del jardín perdió todas sus hojas.","El árbol del jardin perdio todas sus hojas."],
+      correcta:0,
+      explicacion:"Las palabras llanas (acento en penúltima sílaba) llevan tilde si NO terminan en vocal, n o s. 'Árbol' termina en l → lleva tilde. 'Jardín' es aguda terminada en n → tilde." },
+    { id:39, categoria:'ortografia', subtipo:'Tilde en interrogativas indirectas',
+      opciones:["Quiero saber dónde está el examen mañana.","Quiero saber donde está el examen mañana.","Quiero saber dónde esta el examen mañana.","Quiero sabér dónde esta el examen mañana."],
+      correcta:0,
+      explicacion:"Los interrogativos indirectos (incrustados en oraciones) llevan tilde igual que los directos: dónde, cómo, cuándo, qué, quién." },
+    { id:40, categoria:'ortografia', subtipo:'Diptongo (sin tilde)',
+      opciones:["Mi hermano estudia matemáticas en la universidad.","Mi hermano estudía matemáticas en la universidad.","Mi hermano estudia matematicas en la universidad.","Mi hermano estudía matematicas en la universidad."],
+      correcta:0,
+      explicacion:"'Estudia' es palabra llana terminada en vocal: NO lleva tilde. Hay diptongo (ia) que no se rompe. 'Matemáticas' sí (esdrújula)." },
+    { id:41, categoria:'ortografia', subtipo:'Días y meses en minúscula',
+      opciones:["El próximo lunes 15 de enero comienza el curso.","El próximo Lunes 15 de Enero comienza el curso.","El próximo lunes 15 de Enero comienza el curso.","El próximo Lunes 15 de enero comienza el curso."],
+      correcta:0,
+      explicacion:"Los días, meses y estaciones del año van en MINÚSCULA en español (a diferencia del inglés). Solo van con mayúscula si inician oración." },
+    { id:42, categoria:'ortografia', subtipo:'Diéresis (ü)',
+      opciones:["El pingüino vive en regiones muy frías del sur.","El pinguino vive en regiones muy frías del sur.","El pingüíno vive en regiones muy frías del sur.","El pingúino vive en regiones muy frias del sur."],
+      correcta:0,
+      explicacion:"La diéresis (¨) sobre la u en güe/güi indica que la u SÍ se pronuncia. Casos: pingüino, vergüenza, lingüística, bilingüe." },
+    { id:43, categoria:'ortografia', subtipo:'M antes de p y b',
+      opciones:["Acampar al aire libre es una experiencia única.","Acanpar al aire libre es una experiencia única.","Acampar al aire libre es una esperiencia única.","Acanpar al aire libre es una esperiencia única."],
+      correcta:0,
+      explicacion:"Antes de p y b siempre se escribe m, no n. Regla: campo, ambos, importante, también. 'Experiencia' va con x, no s." },
+    { id:44, categoria:'ortografia', subtipo:'Uso de x',
+      opciones:["La excepción confirma la regla en este caso.","La excepcion confirma la regla en este caso.","La esepción confirma la regla en este caso.","La accepción confirma la regla en este caso."],
+      correcta:0,
+      explicacion:"'Excepción' va con x (del latín 'exceptio'). Y la doble cc en '-cción' por venir de 'excepto'. Confirme la regla → confirma." },
+    { id:45, categoria:'ortografia', subtipo:'Adverbios en -mente',
+      opciones:["Trabajó rápidamente para terminar el proyecto.","Trabajó rapidamente para terminar el proyecto.","Trabajó rapídamente para terminar el proyecto.","Trabajó rápidamenté para terminar el proyecto."],
+      correcta:0,
+      explicacion:"Los adverbios en -mente conservan la tilde del adjetivo original: rápido → rápidamente. La tilde no cambia de lugar al añadir -mente." },
+    { id:46, categoria:'ortografia', subtipo:'Plurales con z → ces',
+      opciones:["Los lápices están sobre la mesa del profesor.","Los lapices estan sobre la mesa del profesor.","Los lápizes están sobre la mesa del profesor.","Los lápices estan sobre la mesa del profesor."],
+      correcta:0,
+      explicacion:"Las palabras terminadas en z forman plural cambiando z → ces: lápiz → lápices, pez → peces, luz → luces. Y 'están' lleva tilde." },
+    { id:47, categoria:'ortografia', subtipo:'Tilde diacrítica: él/el',
+      opciones:["Él trabaja en el banco desde hace cinco años.","El trabaja en el banco desde hace cinco años.","Él trabaja en él banco desde hace cinco años.","El trabaja en él banco desde hace cinco años."],
+      correcta:0,
+      explicacion:"'Él' (pronombre, 'él vino') lleva tilde diacrítica. 'El' (artículo, 'el banco') no la lleva. Misma regla: tú/tu, mí/mi." },
+    { id:48, categoria:'ortografia', subtipo:'Tilde diacrítica: más/mas',
+      opciones:["Quiero estudiar más, pero estoy muy cansado.","Quiero estudiar mas, pero estoy muy cansado.","Quiero estudiár más, pero estóy muy cansado.","Quiero estudiar mas pero estoy muy cansado."],
+      correcta:0,
+      explicacion:"'Más' (cantidad/comparación) lleva tilde diacrítica. 'Mas' sin tilde es conjunción adversativa equivalente a 'pero' (uso literario, raro)." },
+    { id:49, categoria:'ortografia', subtipo:'Tilde en interrogativos: qué',
+      opciones:["¿Qué materia te gusta más en el examen GED?","¿Que materia te gusta más en el examen GED?","¿Qué materia te gusta mas en el examen GED?","¿Qué materia te gústa más en el examen GED?"],
+      correcta:0,
+      explicacion:"En preguntas (directas o indirectas), 'qué' lleva tilde diacrítica. 'Que' sin tilde es conjunción ('dijo que vendría') o pronombre relativo ('el libro que leí')." },
+    { id:50, categoria:'ortografia', subtipo:'Verbos con hiato (oír)',
+      opciones:["Es importante oír las opiniones de todos los estudiantes.","Es importante oir las opiniones de todos los estudiantes.","Es importánte oir las opiníones de todos los estudiantes.","Es importante oír las opiñones de todos los estudiantes."],
+      correcta:0,
+      explicacion:"'Oír' tiene hiato (o-ír). La tilde sobre la i marca que se rompe el diptongo y se pronuncia en dos sílabas. Mismo caso: reír, freír." },
+    { id:51, categoria:'ortografia', subtipo:'Parónimos: a ver / haber',
+      opciones:["Voy a ver a mis padres este fin de semana.","Voy haber a mis padres este fin de semana.","Voy aver a mis padres este fin de semana.","Voi a ver a mis padres este fin de semana."],
+      correcta:0,
+      explicacion:"'A ver' (preposición + verbo ver) significa 'mirar'. 'Haber' (verbo) es auxiliar o existencial. Truco: si puedes sustituir por 'mirar', es 'a ver'." },
+    { id:52, categoria:'ortografia', subtipo:'Por qué / porque / porqué',
+      opciones:["No sé por qué no estudias para el examen.","No sé porque no estudias para el examen.","No se por qué no estudias para el examen.","No sé porqué no estudias para el examen."],
+      correcta:0,
+      explicacion:"'Por qué' (separado, con tilde) introduce preguntas (directas o indirectas). 'Porque' (junto, sin tilde) responde o causa. 'Porqué' (junto, con tilde) es sustantivo: 'el porqué'." },
 
     // GRAMÁTICA (12)
     { id:13, categoria:'gramatica', subtipo:'Concordancia de número',
@@ -624,6 +763,66 @@
       opciones:["Estudiando todos los días mejorarás tus calificaciones.","Estudia todos los días mejorarás tus calificaciones.","Estudiar todos los días mejorarás tus calificaciones.","Estudiado todos los días mejorarás tus calificaciones."],
       correcta:0,
       explicacion:"Para indicar el modo o medio (¿cómo mejorarás?), se usa el gerundio (estudiando). El imperativo 'estudia' rompería la oración." },
+    { id:53, categoria:'gramatica', subtipo:'Pretérito vs. imperfecto',
+      opciones:["Cuando era niño, jugaba en el parque todos los días.","Cuando era niño, jugué en el parque todos los días.","Cuando fue niño, jugaba en el parque todos los días.","Cuando era niño, juego en el parque todos los días."],
+      correcta:0,
+      explicacion:"Para acciones habituales o repetidas en el pasado se usa imperfecto (jugaba). El pretérito (jugué) marcaría una vez sola y concreta. 'Era' (estado) también es imperfecto." },
+    { id:54, categoria:'gramatica', subtipo:'Subjuntivo con ojalá',
+      opciones:["Ojalá que apruebes el examen sin problemas.","Ojalá que apruebas el examen sin problemas.","Ojala que apruebes el examen sin problemas.","Ojalá que aprobaste el examen sin problemas."],
+      correcta:0,
+      explicacion:"'Ojalá' SIEMPRE va con subjuntivo (apruebes), nunca con indicativo. Y 'ojalá' lleva tilde por ser palabra aguda terminada en vocal." },
+    { id:55, categoria:'gramatica', subtipo:'Subjuntivo con verbos de duda',
+      opciones:["Dudo que llegue a tiempo a la cita médica.","Dudo que llega a tiempo a la cita médica.","Dudo que llegará a tiempo a la cita médica.","Dudó que llegue a tiempo a la cita médica."],
+      correcta:0,
+      explicacion:"Los verbos de duda (dudar, no creer, no estar seguro) rigen subjuntivo. Compárese con 'creer que' (afirmación) que lleva indicativo: 'creo que llega'." },
+    { id:56, categoria:'gramatica', subtipo:'Subjuntivo con verbos de deseo',
+      opciones:["Quiero que mis hijos estudien una carrera universitaria.","Quiero que mis hijos estudian una carrera universitaria.","Quiero qué mis hijos estudien una carrera universitaria.","Quiero que mis hijos estudian una carrera universitária."],
+      correcta:0,
+      explicacion:"Los verbos de deseo (querer, esperar, desear) con sujeto distinto rigen subjuntivo: 'quiero que TÚ estudies'. Si fuera mismo sujeto: 'quiero estudiar'." },
+    { id:57, categoria:'gramatica', subtipo:'Haber impersonal (siempre singular)',
+      opciones:["Había muchas personas en la fiesta de anoche.","Habían muchas personas en la fiesta de anoche.","Habia muchas personas en la fiesta de anoche.","Habían muchas personás en la fiesta de anoche."],
+      correcta:0,
+      explicacion:"'Haber' impersonal SIEMPRE va en singular: 'había muchas personas', 'hubo problemas', 'habrá retrasos'. Aunque el complemento sea plural, el verbo es invariable." },
+    { id:58, categoria:'gramatica', subtipo:'Concordancia con sujeto colectivo',
+      opciones:["La gente trabaja muchas horas para ganarse la vida.","La gente trabajan muchas horas para ganarse la vida.","Las gente trabajan muchas horas para ganarse la vida.","La gente trabajan muchas hóras para ganarse la vida."],
+      correcta:0,
+      explicacion:"Sujetos colectivos como 'gente', 'familia', 'multitud' rigen verbo en SINGULAR en español: 'la gente trabaja', no 'la gente trabajan'." },
+    { id:59, categoria:'gramatica', subtipo:'Comparativos irregulares',
+      opciones:["Esta solución es mejor que la anterior propuesta.","Esta solución es más buena que la anterior propuesta.","Esta solución es mejór que la anterior propuesta.","Esta solución es más mejor que la anterior propuesta."],
+      correcta:0,
+      explicacion:"Algunos adjetivos tienen comparativo irregular: bueno→mejor, malo→peor, grande→mayor, pequeño→menor. NO se dice 'más bueno' ni 'más mejor' (doble comparativo)." },
+    { id:60, categoria:'gramatica', subtipo:'Pronombre relativo: cuyo',
+      opciones:["El estudiante cuyo examen vimos aprobó con buena nota.","El estudiante que su examen vimos aprobó con buena nota.","El estudiante cuyos examen vimos aprobó con buena nota.","El estudiante de quien examen vimos aprobó con buena nota."],
+      correcta:0,
+      explicacion:"'Cuyo/cuya/cuyos/cuyas' es pronombre relativo posesivo. Concuerda en género y número con la cosa POSEÍDA, no con el poseedor: 'cuyo examen' (singular masculino)." },
+    { id:61, categoria:'gramatica', subtipo:'Imperativo negativo (subjuntivo)',
+      opciones:["Estudia ahora, no estudies a última hora.","Estudia ahora, no estudia a última hora.","Estudía ahora, no estudies a última hora.","Estudias ahora, no estudies a última hora."],
+      correcta:0,
+      explicacion:"El imperativo negativo se forma con SUBJUNTIVO: 'estudia / no estudies', 'come / no comas'. El afirmativo 'estudia' tiene su propia forma (presente sin 's' final)." },
+    { id:62, categoria:'gramatica', subtipo:'Pronombre se impersonal',
+      opciones:["Aquí se habla español todo el tiempo.","Aquí se hablan español todo el tiempo.","Aqui se habla español todo el tiempo.","Aquí se haba español todo el tiempo."],
+      correcta:0,
+      explicacion:"El 'se' impersonal va con verbo en SINGULAR cuando se refiere a una actividad genérica: 'se habla español', 'se vive bien'. 'Aquí' lleva tilde (aguda en vocal)." },
+    { id:63, categoria:'gramatica', subtipo:'Régimen preposicional: consistir EN',
+      opciones:["El examen consiste en cuatro materias diferentes.","El examen consiste de cuatro materias diferentes.","El examen consiste a cuatro materias diferentes.","El examen consista en cuatro materias diferentes."],
+      correcta:0,
+      explicacion:"'Consistir' rige preposición EN, no DE (calco del inglés 'consist of'). Mismo patrón: 'consiste EN trabajar duro', 'depende DE ti'." },
+    { id:64, categoria:'gramatica', subtipo:'Pronombres enclíticos en imperativo',
+      opciones:["Dime la verdad sobre lo que pasó ayer.","Dime la verdad sobre lo qué pasó ayer.","Di me la verdad sobre lo que pasó ayer.","Dimé la verdad sobre lo que pasó ayer."],
+      correcta:0,
+      explicacion:"En imperativo afirmativo, los pronombres se posponen y se unen al verbo: dime, dáselo, ponlo. 'Lo que' es relativo (sin tilde), distinto de '¿qué?' interrogativo." },
+    { id:65, categoria:'gramatica', subtipo:'Adverbio bien vs. adjetivo bueno',
+      opciones:["El estudiante escribe bien y se expresa con claridad.","El estudiante escribe bueno y se expresa con claridad.","El estudiante escribé bien y se expresa con claridad.","El estudiante escribe biem y se expresa con claridad."],
+      correcta:0,
+      explicacion:"Para modificar verbos se usa adverbio (bien, mal), no adjetivo (bueno, malo). 'Escribe bien' (adverbio modifica verbo), pero 'es bueno' (adjetivo de cualidad)." },
+    { id:66, categoria:'gramatica', subtipo:'Sino vs. si no',
+      opciones:["No fue su culpa, sino la del compañero de clase.","No fue su culpa, si no la del compañero de clase.","No fue su culpá, sino la del compañero de clase.","No fue su culpa, sino la del compañéro de clase."],
+      correcta:0,
+      explicacion:"'Sino' (junto) es conjunción adversativa que opone ('no esto, sino aquello'). 'Si no' (separado) es condicional negativo ('si no estudias, repruebas')." },
+    { id:67, categoria:'gramatica', subtipo:'Pronombres neutros',
+      opciones:["No entiendo esto que me explicaste ayer en clase.","No entiendo este que me explicaste ayer en clase.","No entiendo ésto que me explicaste ayer en clase.","No entiéndo esto que me explicaste ayer en clase."],
+      correcta:0,
+      explicacion:"Los pronombres neutros 'esto', 'eso', 'aquello' (referencias abstractas) NO llevan tilde y NO concuerdan con género. Distintos de los demostrativos: 'este libro' (masculino con sustantivo)." },
 
     // PUNTUACIÓN (12)
     { id:25, categoria:'puntuacion', subtipo:'Coma vocativa',
@@ -673,11 +872,65 @@
     { id:36, categoria:'puntuacion', subtipo:'Paréntesis aclaratorios',
       opciones:["El examen GED tiene cuatro materias (Matemáticas, Lenguaje, Ciencias y Sociales).","El examen GED tiene cuatro materias, Matemáticas, Lenguaje, Ciencias y Sociales.","El examen GED tiene cuatro materias: Matemáticas, Lenguaje, Ciencias y Sociales).","El examen GED tiene cuatro materias (Matemáticas, Lenguaje, Ciencias y Sociales."],
       correcta:0,
-      explicacion:"La información aclaratoria adicional puede ir entre paréntesis. Los paréntesis se abren y cierran SIEMPRE en par: ( y )." }
+      explicacion:"La información aclaratoria adicional puede ir entre paréntesis. Los paréntesis se abren y cierran SIEMPRE en par: ( y )." },
+    { id:68, categoria:'puntuacion', subtipo:'Coma con conector breve',
+      opciones:["El examen GED es muy importante, es decir, define tu futuro.","El examen GED es muy importante es decir define tu futuro.","El examen GED es muy importante, es decir define tu futuro.","El examen GED es muy importante es decir, define tu futuro."],
+      correcta:0,
+      explicacion:"Los conectores 'es decir', 'por ejemplo', 'o sea', 'sin embargo' van entre comas cuando aparecen en medio de la oración (una antes y una después)." },
+    { id:69, categoria:'puntuacion', subtipo:'Coma elíptica',
+      opciones:["Yo estudio matemáticas; tú, lengua.","Yo estudio matemáticas; tú lengua.","Yo estudio matemáticas, tú, lengua.","Yo estudio matemáticas; tú lenguá."],
+      correcta:0,
+      explicacion:"La coma elíptica sustituye un verbo que se omite por estar implícito. 'Tú, lengua' = 'tú estudias lengua'. Indica que el verbo se sobreentiende." },
+    { id:70, categoria:'puntuacion', subtipo:'Punto en abreviaturas',
+      opciones:["El Sr. González llegará a las 3 p.m. al evento.","El Sr González llegará a las 3 pm al evento.","El Sr. Gonzalez llegara a las 3 p.m. al evento.","El Señor. González llegará a las 3 p.m. al evento."],
+      correcta:0,
+      explicacion:"Las abreviaturas llevan punto: Sr., Sra., Dr., a.m., p.m., etc. Las palabras completas (Señor, Doctor) NO llevan punto." },
+    { id:71, categoria:'puntuacion', subtipo:'Coma con frase introductoria',
+      opciones:["Después del examen, todos celebraron con una cena.","Después del examen todos celebraron con una cena.","Después, del examen todos celebraron con una cena.","Después del examen, todos, celebraron con una cena."],
+      correcta:0,
+      explicacion:"Las frases introductorias largas (de tiempo, lugar, modo) se separan del resto con coma cuando aparecen al inicio de la oración." },
+    { id:72, categoria:'puntuacion', subtipo:'Raya en diálogo',
+      opciones:["—¿Vas al examen mañana? —preguntó mi madre con preocupación.","-¿Vas al examen mañana? -preguntó mi madre con preocupación.","—¿Vas al examen mañana?—preguntó mi madre con preocupación.","«¿Vas al examen mañana?» preguntó mi madre con preocupación."],
+      correcta:0,
+      explicacion:"El diálogo en español usa raya (—), no guión (-). La raya abre la intervención del personaje y, al final, separa el inciso del narrador con espacio." },
+    { id:73, categoria:'puntuacion', subtipo:'Coma con conector inicial',
+      opciones:["Sin embargo, no pudo terminar el examen a tiempo.","Sin embargo no pudo terminar el examen a tiempo.","Sin embargo, no pudo terminar él examen a tiempo.","Sín embargo, no pudo terminar el examen a tiempo."],
+      correcta:0,
+      explicacion:"Los conectores al inicio de oración ('Sin embargo', 'Por lo tanto', 'No obstante', 'Además') van seguidos de coma, sin excepción." },
+    { id:74, categoria:'puntuacion', subtipo:'Espacios con signos',
+      opciones:["¿Estás listo para el examen? Yo creo que sí.","¿ Estás listo para el examen ? Yo creo que sí.","¿Estás listo para el examen?Yo creo que sí.","¿estás listo para el examen? yo creo que sí."],
+      correcta:0,
+      explicacion:"Después de signos de cierre (?, !, ., ;) va espacio. Antes y después de los signos de apertura (¿, ¡) NO van espacios extra. Las oraciones empiezan con mayúscula." },
+    { id:75, categoria:'puntuacion', subtipo:'Punto y coma entre oraciones',
+      opciones:["Estudié mucho durante el verano; aprobé el examen sin problemas.","Estudié mucho durante el verano, aprobé el examen sin problemas.","Estudié mucho durante el verano. aprobé el examen sin problemas.","Estudie mucho durante el verano; aprobe el examen sin problemas."],
+      correcta:0,
+      explicacion:"El punto y coma (;) separa oraciones independientes pero relacionadas. La coma sola crearía un 'comma splice' (error). El punto sería más fuerte; el punto y coma equilibra ambos." },
+    { id:76, categoria:'puntuacion', subtipo:'Coma en aposición',
+      opciones:["Mi profesor, Juan García, enseña español avanzado.","Mi profesor Juan García enseña español avanzado.","Mi profesor Juan García, enseña español avanzado.","Mi profesor, Juan García enseña español avanzado."],
+      correcta:0,
+      explicacion:"La aposición (nombre que identifica al sujeto de manera explicativa) va entre dos comas: 'Mi profesor, Juan García, enseña…'. Si hay solo una coma, queda incompleta." },
+    { id:77, categoria:'puntuacion', subtipo:'Cita con que (sin dos puntos)',
+      opciones:["El sabio dice que «el conocimiento es poder».","El sabio dice que: «el conocimiento es poder».","El sabio dice qué «el conocimiento es poder».","El sabio dice que el conocimiento es poder."],
+      correcta:0,
+      explicacion:"Cuando 'que' introduce la cita, NO se usan dos puntos. Las comillas marcan la cita textual. 'Que' aquí es conjunción (sin tilde), no interrogativo." },
+    { id:78, categoria:'puntuacion', subtipo:'Punto fuera de comillas',
+      opciones:["Mi padre siempre decía: «El estudio abre puertas».","Mi padre siempre decía: «El estudio abre puertas.»","Mi padre siempre decía «El estudio abre puertas»","Mi padre siempre decía: «El estudio abre puertas»"],
+      correcta:0,
+      explicacion:"En español, el punto final va FUERA de las comillas de cierre, no dentro (a diferencia del inglés americano). Y la cita requiere dos puntos antes." },
+    { id:79, categoria:'puntuacion', subtipo:'Pregunta parcial con coma',
+      opciones:["Estás listo, ¿verdad?","¿Estás listo, verdad?","Estás listo verdad?","Estás listó, ¿verdad?"],
+      correcta:0,
+      explicacion:"Los signos ¿? marcan SOLO la parte interrogativa de la oración, no toda. 'Estás listo, ¿verdad?' — solo '¿verdad?' es la pregunta. La coma separa las dos partes." },
+    { id:80, categoria:'puntuacion', subtipo:'Coma con vocativo final',
+      opciones:["Ten mucho cuidado al cruzar la calle, hijo.","Ten mucho cuidado al cruzar la calle hijo.","Ten mucho cuidádo al cruzar la calle, hijo.","Ten, mucho cuidado al cruzar la calle, hijo."],
+      correcta:0,
+      explicacion:"El vocativo al final de la oración también va precedido de coma: 'Ten cuidado, hijo'. Es la misma regla que al inicio: 'Hijo, ten cuidado'." }
   ];
 
   // ============ ESTADO ============
-  const TOTAL_POR_RONDA = 10;
+  function totalPorRonda(modo) {
+    return modo === 'examen' ? 30 : 10;
+  }
   let estado = {
     modo: null,
     preguntas: [],         // las 10 elegidas para esta ronda, con orden de opciones ya barajado
@@ -706,12 +959,12 @@
 
   function seleccionarPreguntas(modo) {
     let pool;
-    if (modo === 'mixto') {
+    if (modo === 'mixto' || modo === 'examen') {
       pool = BANCO.slice();
     } else {
       pool = BANCO.filter(p => p.categoria === modo);
     }
-    const elegidas = barajar(pool).slice(0, TOTAL_POR_RONDA);
+    const elegidas = barajar(pool).slice(0, totalPorRonda(modo));
     // Para cada pregunta, barajar el orden de opciones y recalcular el índice correcto
     return elegidas.map(p => {
       const orden = barajar([0,1,2,3]);
@@ -896,7 +1149,7 @@
   }
 
   // ============ EVENT LISTENERS ============
-  document.querySelectorAll('.modo-card').forEach(card => {
+  document.querySelectorAll('.modo-card, .examen-card').forEach(card => {
     const handler = () => iniciarRonda(card.dataset.modo);
     card.addEventListener('click', handler);
     card.addEventListener('keydown', (ev) => {
