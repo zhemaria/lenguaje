@@ -1,1 +1,924 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Generador de oraciones para corregir: práctica interactiva de ortografía, gramática y puntuación para el examen GED en español.">
+<title>Editor GED · Generador de oraciones para corregir</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ========== Reset y base ========== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    color: #1f2937;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 16px;
+  }
 
+  /* ========== Layout principal ========== */
+  .container {
+    max-width: 820px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 137, 205, 0.12);
+    overflow: hidden;
+  }
+
+  /* ========== Header ========== */
+  .app-header {
+    background: linear-gradient(135deg, #0089cd 0%, #0073ae 100%);
+    color: #ffffff;
+    padding: 28px 24px 24px;
+    text-align: center;
+  }
+  .app-header h1 {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .app-header .icon {
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 1.6rem;
+    vertical-align: -2px;
+  }
+  .app-header p {
+    font-size: 0.95rem;
+    font-weight: 300;
+    opacity: 0.95;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  /* ========== Pantalla de bienvenida ========== */
+  .pantalla {
+    padding: 28px 24px;
+    display: none;
+  }
+  .pantalla.activa { display: block; animation: fadeIn 0.4s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .intro h2 {
+    font-size: 1.3rem;
+    color: #0089cd;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .intro p {
+    color: #4b5563;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+  }
+
+  .modos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .modo-card {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 18px 16px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-align: center;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .modo-card:hover, .modo-card:focus-visible {
+    border-color: #0089cd;
+    background: #f0f9ff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 137, 205, 0.15);
+    outline: none;
+  }
+  .modo-card .modo-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .modo-card .modo-nombre {
+    font-weight: 600;
+    color: #1f2937;
+    font-size: 1rem;
+    margin-bottom: 2px;
+  }
+  .modo-card .modo-desc {
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+
+  /* ========== Quiz ========== */
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .progreso-info {
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+  .progreso-info strong { color: #0089cd; font-weight: 700; }
+  .puntaje-info {
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+  .puntaje-info strong { color: #16a34a; font-weight: 700; }
+
+  .barra-progreso {
+    width: 100%;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .barra-progreso-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0089cd, #38bdf8);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .pregunta-prompt {
+    font-size: 1rem;
+    color: #4b5563;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .pregunta-categoria {
+    display: inline-block;
+    background: #fef3c7;
+    color: #92400e;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 16px;
+  }
+  .pregunta-categoria.ortografia { background: #dbeafe; color: #1e40af; }
+  .pregunta-categoria.gramatica { background: #fce7f3; color: #9d174d; }
+  .pregunta-categoria.puntuacion { background: #d1fae5; color: #065f46; }
+
+  .opciones {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  /* Brightspace constraint: usamos div clickables, NO label */
+  .opcion {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+  .opcion:hover, .opcion:focus-visible {
+    border-color: #0089cd;
+    background: #f0f9ff;
+    outline: none;
+  }
+  .opcion .letra {
+    background: #e5e7eb;
+    color: #4b5563;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+  }
+  .opcion:hover .letra { background: #0089cd; color: #ffffff; }
+  .opcion .texto { flex: 1; padding-top: 2px; }
+
+  /* Estados post-respuesta */
+  .opcion.bloqueada { cursor: not-allowed; pointer-events: none; }
+
+  .opcion.correcta-revelada {
+    background: #f0fdf4;
+    border-color: #16a34a;
+  }
+  .opcion.correcta-revelada .letra {
+    background: #16a34a;
+    color: #ffffff;
+  }
+  .opcion.correcta-revelada::after {
+    content: '✓';
+    color: #16a34a;
+    font-weight: 800;
+    font-size: 1.4rem;
+    margin-left: auto;
+    align-self: center;
+  }
+
+  .opcion.incorrecta-elegida {
+    background: #fef2f2;
+    border-color: #dc2626;
+  }
+  .opcion.incorrecta-elegida .letra {
+    background: #dc2626;
+    color: #ffffff;
+  }
+  .opcion.incorrecta-elegida::after {
+    content: '✗';
+    color: #dc2626;
+    font-weight: 800;
+    font-size: 1.4rem;
+    margin-left: auto;
+    align-self: center;
+  }
+
+  /* Feedback */
+  .feedback {
+    background: #f9fafb;
+    border-left: 4px solid #0089cd;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .feedback.visible {
+    display: block;
+    animation: fadeIn 0.3s ease;
+  }
+  .feedback.acierto { border-left-color: #16a34a; background: #f0fdf4; }
+  .feedback.fallo { border-left-color: #dc2626; background: #fef2f2; }
+
+  .feedback-titulo {
+    font-weight: 700;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+  }
+  .feedback.acierto .feedback-titulo { color: #15803d; }
+  .feedback.fallo .feedback-titulo { color: #b91c1c; }
+
+  .feedback-subtipo {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .feedback-explicacion {
+    color: #374151;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  /* Botones */
+  .btn {
+    background: #0089cd;
+    color: #ffffff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    width: 100%;
+    margin-top: 8px;
+  }
+  .btn:hover, .btn:focus-visible {
+    background: #0073ae;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 137, 205, 0.3);
+    outline: none;
+  }
+  .btn:active { transform: translateY(0); }
+  .btn-secundario {
+    background: #ffffff;
+    color: #0089cd;
+    border: 2px solid #0089cd;
+  }
+  .btn-secundario:hover, .btn-secundario:focus-visible {
+    background: #f0f9ff;
+  }
+
+  .botones-fila {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .botones-fila .btn { flex: 1; min-width: 140px; }
+
+  /* ========== Pantalla de resultados ========== */
+  .resultados-circulo {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0089cd, #38bdf8);
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 10px 30px rgba(0, 137, 205, 0.3);
+  }
+  .resultados-circulo .puntaje-num {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .resultados-circulo .puntaje-total {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-top: 4px;
+  }
+
+  .resultados-mensaje {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .resultados-submensaje {
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+
+  .resultados-detalle {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 20px;
+  }
+  .resultados-detalle h3 {
+    font-size: 0.95rem;
+    color: #4b5563;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .detalle-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 0.9rem;
+  }
+  .detalle-item:last-child { border-bottom: none; }
+  .detalle-item .nombre { color: #4b5563; font-weight: 500; }
+  .detalle-item .valor { font-weight: 700; color: #0089cd; }
+
+  /* ========== Footer ========== */
+  .app-footer {
+    text-align: center;
+    padding: 16px;
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 0.85rem;
+    border-top: 1px solid #e5e7eb;
+  }
+  .app-footer strong { color: #0089cd; }
+
+  /* ========== Responsive ========== */
+  @media (max-width: 480px) {
+    body { padding: 8px; }
+    .container { border-radius: 14px; }
+    .app-header { padding: 22px 16px 18px; }
+    .pantalla { padding: 22px 16px; }
+    .opcion { padding: 12px 14px; font-size: 0.92rem; }
+    .modos-grid { grid-template-columns: repeat(2, 1fr); }
+    .modo-card { padding: 14px 10px; }
+    .resultados-circulo { width: 120px; height: 120px; }
+    .resultados-circulo .puntaje-num { font-size: 2.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header class="app-header">
+    <h1><span class="icon">✏️</span>Editor GED</h1>
+    <p>Detecta y corrige errores de ortografía, gramática y puntuación</p>
+  </header>
+
+  <!-- Pantalla 1: Bienvenida -->
+  <section class="pantalla activa" id="pantalla-inicio">
+    <div class="intro">
+      <h2>Elige un modo de práctica</h2>
+      <p>Cada ronda tiene 10 oraciones. Lee las cuatro versiones y selecciona la que está escrita correctamente. Al final recibirás retroalimentación sobre cada regla.</p>
+
+      <div class="modos-grid">
+        <div class="modo-card" tabindex="0" role="button" data-modo="ortografia" aria-label="Modo Ortografía">
+          <span class="modo-icon">🔤</span>
+          <div class="modo-nombre">Ortografía</div>
+          <div class="modo-desc">Tildes, b/v, c/s/z, h, mayúsculas</div>
+        </div>
+        <div class="modo-card" tabindex="0" role="button" data-modo="gramatica" aria-label="Modo Gramática">
+          <span class="modo-icon">📝</span>
+          <div class="modo-nombre">Gramática</div>
+          <div class="modo-desc">Concordancia, ser/estar, dequeísmo</div>
+        </div>
+        <div class="modo-card" tabindex="0" role="button" data-modo="puntuacion" aria-label="Modo Puntuación">
+          <span class="modo-icon">⏸️</span>
+          <div class="modo-nombre">Puntuación</div>
+          <div class="modo-desc">Comas, punto y coma, signos dobles</div>
+        </div>
+        <div class="modo-card" tabindex="0" role="button" data-modo="mixto" aria-label="Modo Mixto">
+          <span class="modo-icon">🎲</span>
+          <div class="modo-nombre">Mixto</div>
+          <div class="modo-desc">Las tres categorías combinadas</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pantalla 2: Quiz -->
+  <section class="pantalla" id="pantalla-quiz">
+    <div class="quiz-header">
+      <span class="progreso-info">Pregunta <strong id="num-actual">1</strong> de <strong id="num-total">10</strong></span>
+      <span class="puntaje-info">Aciertos: <strong id="puntaje-actual">0</strong></span>
+    </div>
+    <div class="barra-progreso">
+      <div class="barra-progreso-fill" id="barra-fill"></div>
+    </div>
+
+    <div class="pregunta-categoria" id="pregunta-categoria">Categoría</div>
+    <p class="pregunta-prompt">¿Cuál de las siguientes oraciones está escrita correctamente?</p>
+
+    <div class="opciones" id="opciones-container"></div>
+
+    <div class="feedback" id="feedback">
+      <div class="feedback-titulo" id="feedback-titulo"></div>
+      <div class="feedback-subtipo" id="feedback-subtipo"></div>
+      <div class="feedback-explicacion" id="feedback-explicacion"></div>
+    </div>
+
+    <button class="btn" id="btn-siguiente" style="display:none;">Siguiente pregunta →</button>
+  </section>
+
+  <!-- Pantalla 3: Resultados -->
+  <section class="pantalla" id="pantalla-resultados">
+    <div class="resultados-circulo">
+      <div class="puntaje-num" id="resultado-num">0</div>
+      <div class="puntaje-total">de <span id="resultado-total">10</span></div>
+    </div>
+
+    <div class="resultados-mensaje" id="resultado-mensaje">¡Buen trabajo!</div>
+    <div class="resultados-submensaje" id="resultado-submensaje">Sigue practicando para mejorar.</div>
+
+    <div class="resultados-detalle">
+      <h3>Resumen de la ronda</h3>
+      <div id="resumen-categorias"></div>
+    </div>
+
+    <div class="botones-fila">
+      <button class="btn btn-secundario" id="btn-cambiar-modo">Cambiar modo</button>
+      <button class="btn" id="btn-otra-ronda">Otra ronda</button>
+    </div>
+  </section>
+
+  <footer class="app-footer">
+    Práctica de edición · <strong>GEDparaHispanos.com</strong>
+  </footer>
+</div>
+
+<script>
+// ===== Pattern A: IIFE + flag para evitar contaminar globals =====
+(function() {
+  'use strict';
+  if (window.__editorGED_iniciado) return;
+  window.__editorGED_iniciado = true;
+
+  // ============ BANCO DE ORACIONES ============
+  const BANCO = [
+    // ORTOGRAFÍA (12)
+    { id:1, categoria:'ortografia', subtipo:'Tilde en agudas',
+      opciones:["El profesor terminó la clase a las cinco.","El profesor termino la clase a las cinco.","El profesor términó la clase a las cinco.","El profesor terminó la clasé a las cinco."],
+      correcta:0,
+      explicacion:"Las palabras agudas (acento en la última sílaba) terminadas en vocal, n o s llevan tilde. 'Terminó' es aguda y termina en vocal." },
+    { id:2, categoria:'ortografia', subtipo:'Tilde en esdrújulas',
+      opciones:["El médico examinó al paciente con cuidado.","El medico examinó al paciente con cuidado.","El médicó examinó al paciente con cuidado.","El médico examino al paciente con cuidado."],
+      correcta:0,
+      explicacion:"'Médico' es esdrújula (acento en antepenúltima sílaba) y SIEMPRE lleva tilde. Regla sin excepciones para esdrújulas." },
+    { id:3, categoria:'ortografia', subtipo:'Uso de b/v',
+      opciones:["El gobierno aprobó la nueva ley el martes.","El govierno aprobó la nueva ley el martes.","El gobierno aprovó la nueva ley el martes.","El govierno aprovó la nueva ley el martes."],
+      correcta:0,
+      explicacion:"'Gobierno' y 'aprobó' van con b. Regla: 'gob-' siempre con b; el verbo 'aprobar' viene del latín 'approbare' (con b)." },
+    { id:4, categoria:'ortografia', subtipo:'Uso de c/s/z',
+      opciones:["La decisión del juez fue justa y razonable.","La desición del juez fue justa y rasonable.","La desición del juez fue justa y razonable.","La decisión del juez fue justa y rasonable."],
+      correcta:0,
+      explicacion:"'Decisión' va con c (del latín 'decidere'). 'Razonable' va con z (familia de 'razón')." },
+    { id:5, categoria:'ortografia', subtipo:'H muda',
+      opciones:["Estudiar la historia de tu país te enriquece.","Estudiar la istoria de tu país te enriquece.","Estudiar la hístoria de tu país te enriquece.","Estudiar la istoria de tu pais te enriquece."],
+      correcta:0,
+      explicacion:"'Historia' lleva h muda al inicio (del griego 'historía'). La h no se pronuncia pero se escribe." },
+    { id:6, categoria:'ortografia', subtipo:'Uso de g/j',
+      opciones:["El ingeniero civil revisó los planos del puente.","El injeniero civil revisó los planos del puente.","El ingeniero civíl revisó los planos del puente.","El injeniero sivil revisó los planos del puente."],
+      correcta:0,
+      explicacion:"'Ingeniero' va con g. Regla: las palabras terminadas en '-gen', '-genio', '-geniero' llevan g." },
+    { id:7, categoria:'ortografia', subtipo:'Uso de y/ll',
+      opciones:["El abuelo leyó el cuento a sus nietos.","El abuelo lleyó el cuento a sus nietos.","El abuelo leyo el cuento a sus nietos.","El abuelo lleyo el cuento a sus nietos."],
+      correcta:0,
+      explicacion:"'Leyó' (verbo leer en pretérito) lleva y, no ll. Entre vocales el sonido /i/ se escribe y." },
+    { id:8, categoria:'ortografia', subtipo:'Hay / ahí / ay',
+      opciones:["Hay muchas oportunidades para los estudiantes adultos.","Ahí muchas oportunidades para los estudiantes adultos.","Ay muchas oportunidades para los estudiantes adultos.","Hai muchas oportunidades para los estudiantes adultos."],
+      correcta:0,
+      explicacion:"'Hay' (verbo haber) indica existencia. 'Ahí' es adverbio de lugar. 'Ay' es interjección de dolor o queja." },
+    { id:9, categoria:'ortografia', subtipo:'Tilde diacrítica: tú/tu',
+      opciones:["Tú sabes la respuesta correcta del examen.","Tu sabes la respuesta correcta del examen.","Tú sabés la respuesta correcta del examen.","Tu sabés la respuesta correcta del examen."],
+      correcta:0,
+      explicacion:"'Tú' (pronombre personal) lleva tilde diacrítica. 'Tu' (posesivo, 'tu casa') no la lleva." },
+    { id:10, categoria:'ortografia', subtipo:'Tilde diacrítica: sé/se',
+      opciones:["Yo sé que vas a aprobar el examen GED.","Yo se que vas a aprobar el examen GED.","Yo sé qué vas a aprobar el examen GED.","Yo sê que vas a aprobar el examen GED."],
+      correcta:0,
+      explicacion:"'Sé' (verbo saber, 1.ª persona) lleva tilde diacrítica. 'Se' (pronombre, 'se lavó') no la lleva. Aquí 'que' es conjunción, no pregunta." },
+    { id:11, categoria:'ortografia', subtipo:'Mayúsculas en nombres propios',
+      opciones:["El río Misisipi cruza varios estados de Estados Unidos.","El río misisipi cruza varios estados de estados unidos.","El Río Misisipi cruza varios Estados de Estados Unidos.","El río misisipi cruza varios estados de Estados Unidos."],
+      correcta:0,
+      explicacion:"Los nombres propios (ríos, países) llevan mayúscula inicial: 'Misisipi', 'Estados Unidos'. Pero 'río' y 'estados' (común) van en minúscula." },
+    { id:12, categoria:'ortografia', subtipo:'Doble c (-cción)',
+      opciones:["La acción del gobierno generó muchas reacciones.","La ación del gobierno generó muchas reaciones.","La acción del gobierno generó muchas reaciones.","La ación del gobierno generó muchas reacciones."],
+      correcta:0,
+      explicacion:"Las palabras terminadas en '-cción' llevan doble c cuando vienen de palabras con '-cto': acto→acción, reactor→reacción." },
+
+    // GRAMÁTICA (12)
+    { id:13, categoria:'gramatica', subtipo:'Concordancia de número',
+      opciones:["Los estudiantes adultos enfrentan retos importantes.","Los estudiantes adultos enfrenta retos importantes.","Los estudiante adultos enfrentan retos importantes.","Los estudiantes adulto enfrentan retos importantes."],
+      correcta:0,
+      explicacion:"El verbo concuerda en número con el sujeto. 'Estudiantes' (plural) → 'enfrentan'. Y todos los modificadores (adultos) deben ir también en plural." },
+    { id:14, categoria:'gramatica', subtipo:'Concordancia de género',
+      opciones:["La nueva ley protege a las familias trabajadoras.","El nueva ley protege a las familias trabajadoras.","La nuevo ley protege a las familias trabajadoras.","La nueva ley protege a los familias trabajadoras."],
+      correcta:0,
+      explicacion:"El artículo y los adjetivos concuerdan en género con el sustantivo. 'Ley' es femenino → 'la nueva ley'." },
+    { id:15, categoria:'gramatica', subtipo:'Ser vs. estar',
+      opciones:["Mi hermana está enferma desde el lunes.","Mi hermana es enferma desde el lunes.","Mi hermana esta enferma desde el lunes.","Mi hermana ser enferma desde el lunes."],
+      correcta:0,
+      explicacion:"Para estados temporales (enfermedad, ánimo, ubicación) se usa 'estar'. 'Ser' se reserva para características permanentes. Y 'está' lleva tilde." },
+    { id:16, categoria:'gramatica', subtipo:'Dequeísmo',
+      opciones:["Pienso que el examen será difícil pero justo.","Pienso de que el examen será difícil pero justo.","Pienso que el examen sera difícil pero justo.","Pienso de que el examen sera difícil pero justo."],
+      correcta:0,
+      explicacion:"Dequeísmo: usar 'de que' donde solo va 'que'. Verbos como pensar, creer, decir, opinar van con 'que' SIN preposición." },
+    { id:17, categoria:'gramatica', subtipo:'Queísmo',
+      opciones:["Me alegro de que estés aquí con nosotros.","Me alegro que estés aquí con nosotros.","Me alegro de que estes aquí con nosotros.","Me alegro que estes aquí con nosotros."],
+      correcta:0,
+      explicacion:"Queísmo: omitir 'de' cuando es necesario. 'Alegrarse' rige preposición 'de'. Truco: si puedes preguntar '¿de qué me alegro?', el 'de' es obligatorio." },
+    { id:18, categoria:'gramatica', subtipo:'Si condicional',
+      opciones:["Si tuviera más tiempo, estudiaría todos los días.","Si tendría más tiempo, estudiaría todos los días.","Si tenía más tiempo, estudiaría todos los días.","Si tuviera más tiempo, estudiara todos los días."],
+      correcta:0,
+      explicacion:"Condicional irreal: 'Si' + imperfecto subjuntivo (tuviera) + condicional (estudiaría). NUNCA 'Si' + condicional ('si tendría' es error grave)." },
+    { id:19, categoria:'gramatica', subtipo:'Lo neutro vs. el',
+      opciones:["Lo bueno de estudiar es el conocimiento que ganas.","El bueno de estudiar es el conocimiento que ganas.","La buena de estudiar es el conocimiento que ganas.","Los buenos de estudiar es el conocimiento que ganas."],
+      correcta:0,
+      explicacion:"'Lo' (artículo neutro) sustantiva adjetivos en sentido abstracto: 'lo bueno' = el aspecto bueno. 'El bueno' se referiría a una persona masculina." },
+    { id:20, categoria:'gramatica', subtipo:'Régimen preposicional',
+      opciones:["Soñé con mi abuela toda la noche.","Soñé en mi abuela toda la noche.","Soñé a mi abuela toda la noche.","Soñé sobre mi abuela toda la noche."],
+      correcta:0,
+      explicacion:"El verbo 'soñar' rige preposición 'con'. Cada verbo tiene su preposición fija: pensar EN, soñar CON, depender DE, insistir EN." },
+    { id:21, categoria:'gramatica', subtipo:'Pronombre le/la (leísmo)',
+      opciones:["A mi hermana le compré un regalo de cumpleaños.","A mi hermana la compré un regalo de cumpleaños.","A mi hermana lo compré un regalo de cumpleaños.","A mi hermana les compré un regalo de cumpleaños."],
+      correcta:0,
+      explicacion:"'Le' es complemento indirecto (a quién). 'A mi hermana' recibe el regalo (CI), no es objeto directo (ese sería 'el regalo'). Por eso 'le', no 'la'." },
+    { id:22, categoria:'gramatica', subtipo:'Subjuntivo con para que',
+      opciones:["Te explico el problema para que entiendas mejor.","Te explico el problema para que entiendes mejor.","Te explico el problema para que entendiste mejor.","Te explico el problema para que entender mejor."],
+      correcta:0,
+      explicacion:"'Para que' SIEMPRE exige subjuntivo (entiendas), nunca indicativo. Expresa finalidad o propósito hipotético." },
+    { id:23, categoria:'gramatica', subtipo:'Doble negación',
+      opciones:["No vi a nadie en el parque ayer.","No vi a alguien en el parque ayer.","No vi nadie en el parque ayer.","Vi a nadie en el parque ayer."],
+      correcta:0,
+      explicacion:"En español, después de 'no' se usa 'nadie' (no 'alguien'). La doble negación es OBLIGATORIA y correcta. Y la 'a' personal antes de 'nadie' es necesaria." },
+    { id:24, categoria:'gramatica', subtipo:'Gerundio modal',
+      opciones:["Estudiando todos los días mejorarás tus calificaciones.","Estudia todos los días mejorarás tus calificaciones.","Estudiar todos los días mejorarás tus calificaciones.","Estudiado todos los días mejorarás tus calificaciones."],
+      correcta:0,
+      explicacion:"Para indicar el modo o medio (¿cómo mejorarás?), se usa el gerundio (estudiando). El imperativo 'estudia' rompería la oración." },
+
+    // PUNTUACIÓN (12)
+    { id:25, categoria:'puntuacion', subtipo:'Coma vocativa',
+      opciones:["Juan, ven a la oficina por favor.","Juan ven a la oficina por favor.","Juan ven, a la oficina por favor.","Juan, ven, a la oficina por favor."],
+      correcta:0,
+      explicacion:"El vocativo (la persona a quien hablamos directamente) SIEMPRE va separado por coma del resto de la oración." },
+    { id:26, categoria:'puntuacion', subtipo:'Coma en enumeración',
+      opciones:["Compré pan, leche, huevos y queso en la tienda.","Compré pan leche huevos y queso en la tienda.","Compré pan, leche, huevos, y queso en la tienda.","Compré pan, leche huevos, y queso en la tienda."],
+      correcta:0,
+      explicacion:"Los elementos de una enumeración van separados por comas. En español NO se pone coma antes de la 'y' final (a diferencia del inglés)." },
+    { id:27, categoria:'puntuacion', subtipo:'Comas explicativas',
+      opciones:["Mi hermano, que vive en Chicago, me visita en navidad.","Mi hermano que vive en Chicago me visita en navidad.","Mi hermano, que vive en Chicago me visita en navidad.","Mi hermano que vive en Chicago, me visita en navidad."],
+      correcta:0,
+      explicacion:"Las oraciones explicativas (información adicional sobre un sustantivo único) van entre DOS comas, una al inicio y otra al final." },
+    { id:28, categoria:'puntuacion', subtipo:'Punto y coma con conector',
+      opciones:["Estudié toda la noche; sin embargo, no terminé el ensayo.","Estudié toda la noche, sin embargo, no terminé el ensayo.","Estudié toda la noche sin embargo no terminé el ensayo.","Estudié toda la noche; sin embargo no terminé el ensayo."],
+      correcta:0,
+      explicacion:"Antes de conectores como 'sin embargo', 'por lo tanto', 'no obstante' se usa punto y coma (;) o punto seguido. Después del conector va coma." },
+    { id:29, categoria:'puntuacion', subtipo:'Dos puntos antes de lista',
+      opciones:["Necesitas tres cosas: lápiz, papel y calculadora.","Necesitas tres cosas, lápiz, papel y calculadora.","Necesitas tres cosas; lápiz, papel y calculadora.","Necesitas tres cosas. lápiz, papel y calculadora."],
+      correcta:0,
+      explicacion:"Después de un anuncio o lista enumerativa que sigue, se usan dos puntos (:), no coma." },
+    { id:30, categoria:'puntuacion', subtipo:'Cita textual con dos puntos',
+      opciones:["El profesor dijo: «El examen será el lunes próximo».","El profesor dijo, El examen será el lunes próximo.","El profesor dijo «el examen será el lunes próximo».","El profesor dijo: el examen será el lunes próximo."],
+      correcta:0,
+      explicacion:"El estilo directo (cita textual) requiere dos puntos antes y comillas alrededor. La cita comienza con mayúscula." },
+    { id:31, categoria:'puntuacion', subtipo:'Signos de interrogación dobles',
+      opciones:["¿Cuándo es el próximo examen GED?","Cuándo es el próximo examen GED?","¿Cuándo es el próximo examen GED.","Cuando es el próximo examen GED?"],
+      correcta:0,
+      explicacion:"En español, las preguntas SIEMPRE llevan signo de apertura (¿) y de cierre (?). Es regla obligatoria, distinta del inglés." },
+    { id:32, categoria:'puntuacion', subtipo:'Signos de exclamación dobles',
+      opciones:["¡Felicidades por tu graduación!","Felicidades por tu graduación!","¡Felicidades por tu graduación.","Felicidades por tu graduación."],
+      correcta:0,
+      explicacion:"Las exclamaciones requieren signo de apertura (¡) y de cierre (!) en español. Es la misma regla que para preguntas." },
+    { id:33, categoria:'puntuacion', subtipo:'Punto al final',
+      opciones:["Mañana es un día importante para todos nosotros.","Mañana es un día importante para todos nosotros","Mañana es un día importante para todos nosotros,","Mañana es un día importante para todos nosotros;"],
+      correcta:0,
+      explicacion:"Toda oración declarativa termina con punto (.). Sin él, la oración queda incompleta gráficamente." },
+    { id:34, categoria:'puntuacion', subtipo:'Mayúscula tras punto',
+      opciones:["Estudié toda la noche. Mañana tengo el examen.","Estudié toda la noche. mañana tengo el examen.","Estudié toda la noche, mañana tengo el examen.","Estudié toda la noche mañana tengo el examen."],
+      correcta:0,
+      explicacion:"Después de punto seguido (o aparte), la siguiente oración SIEMPRE comienza con mayúscula." },
+    { id:35, categoria:'puntuacion', subtipo:'Coma criminal (sujeto–verbo)',
+      opciones:["Los estudiantes que estudian con disciplina aprueban el examen.","Los estudiantes que estudian con disciplina, aprueban el examen.","Los estudiantes, que estudian con disciplina aprueban el examen.","Los estudiantes, que estudian con disciplina, aprueban, el examen."],
+      correcta:0,
+      explicacion:"NUNCA se separa el sujeto del verbo con coma (la llamada 'coma criminal'). La oración 'que estudian con disciplina' es especificativa (no entre comas)." },
+    { id:36, categoria:'puntuacion', subtipo:'Paréntesis aclaratorios',
+      opciones:["El examen GED tiene cuatro materias (Matemáticas, Lenguaje, Ciencias y Sociales).","El examen GED tiene cuatro materias, Matemáticas, Lenguaje, Ciencias y Sociales.","El examen GED tiene cuatro materias: Matemáticas, Lenguaje, Ciencias y Sociales).","El examen GED tiene cuatro materias (Matemáticas, Lenguaje, Ciencias y Sociales."],
+      correcta:0,
+      explicacion:"La información aclaratoria adicional puede ir entre paréntesis. Los paréntesis se abren y cierran SIEMPRE en par: ( y )." }
+  ];
+
+  // ============ ESTADO ============
+  const TOTAL_POR_RONDA = 10;
+  let estado = {
+    modo: null,
+    preguntas: [],         // las 10 elegidas para esta ronda, con orden de opciones ya barajado
+    indiceActual: 0,
+    aciertos: 0,
+    aciertosPorCategoria: { ortografia:0, gramatica:0, puntuacion:0 },
+    totalPorCategoria: { ortografia:0, gramatica:0, puntuacion:0 },
+    respondida: false
+  };
+
+  // ============ HELPERS ============
+  function barajar(array) {
+    const a = array.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  const NOMBRES_CATEGORIA = {
+    ortografia: 'Ortografía',
+    gramatica: 'Gramática',
+    puntuacion: 'Puntuación'
+  };
+
+  function seleccionarPreguntas(modo) {
+    let pool;
+    if (modo === 'mixto') {
+      pool = BANCO.slice();
+    } else {
+      pool = BANCO.filter(p => p.categoria === modo);
+    }
+    const elegidas = barajar(pool).slice(0, TOTAL_POR_RONDA);
+    // Para cada pregunta, barajar el orden de opciones y recalcular el índice correcto
+    return elegidas.map(p => {
+      const orden = barajar([0,1,2,3]);
+      const opcionesBarajadas = orden.map(i => p.opciones[i]);
+      const nuevaCorrecta = orden.indexOf(p.correcta);
+      return {
+        id: p.id,
+        categoria: p.categoria,
+        subtipo: p.subtipo,
+        opciones: opcionesBarajadas,
+        correcta: nuevaCorrecta,
+        explicacion: p.explicacion
+      };
+    });
+  }
+
+  // ============ RENDERIZADO ============
+  function mostrarPantalla(idPantalla) {
+    document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+    document.getElementById(idPantalla).classList.add('activa');
+  }
+
+  function renderPregunta() {
+    const p = estado.preguntas[estado.indiceActual];
+    document.getElementById('num-actual').textContent = estado.indiceActual + 1;
+    document.getElementById('num-total').textContent = estado.preguntas.length;
+    document.getElementById('puntaje-actual').textContent = estado.aciertos;
+
+    const pct = ((estado.indiceActual) / estado.preguntas.length) * 100;
+    document.getElementById('barra-fill').style.width = pct + '%';
+
+    const catEl = document.getElementById('pregunta-categoria');
+    catEl.className = 'pregunta-categoria ' + p.categoria;
+    catEl.textContent = NOMBRES_CATEGORIA[p.categoria];
+
+    const cont = document.getElementById('opciones-container');
+    cont.innerHTML = '';
+    const letras = ['A','B','C','D'];
+    p.opciones.forEach((texto, idx) => {
+      const opcion = document.createElement('div');
+      opcion.className = 'opcion';
+      opcion.setAttribute('role', 'button');
+      opcion.setAttribute('tabindex', '0');
+      opcion.dataset.indice = idx;
+      opcion.innerHTML = `<span class="letra">${letras[idx]}</span><span class="texto">${escapeHTML(texto)}</span>`;
+      opcion.addEventListener('click', () => seleccionarRespuesta(idx));
+      opcion.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          seleccionarRespuesta(idx);
+        }
+      });
+      cont.appendChild(opcion);
+    });
+
+    document.getElementById('feedback').classList.remove('visible','acierto','fallo');
+    document.getElementById('btn-siguiente').style.display = 'none';
+    estado.respondida = false;
+  }
+
+  function escapeHTML(s) {
+    return s
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
+  function seleccionarRespuesta(indiceElegido) {
+    if (estado.respondida) return;
+    estado.respondida = true;
+
+    const p = estado.preguntas[estado.indiceActual];
+    const acerto = (indiceElegido === p.correcta);
+
+    if (acerto) {
+      estado.aciertos++;
+      estado.aciertosPorCategoria[p.categoria]++;
+    }
+    estado.totalPorCategoria[p.categoria]++;
+
+    // Marcar opciones
+    const opciones = document.querySelectorAll('.opcion');
+    opciones.forEach((op, idx) => {
+      op.classList.add('bloqueada');
+      if (idx === p.correcta) op.classList.add('correcta-revelada');
+      if (idx === indiceElegido && !acerto) op.classList.add('incorrecta-elegida');
+    });
+
+    // Feedback
+    const fb = document.getElementById('feedback');
+    fb.classList.add('visible', acerto ? 'acierto' : 'fallo');
+    document.getElementById('feedback-titulo').textContent = acerto
+      ? '✓ ¡Correcto!'
+      : '✗ Respuesta incorrecta';
+    document.getElementById('feedback-subtipo').textContent = 'Regla: ' + p.subtipo;
+    document.getElementById('feedback-explicacion').textContent = p.explicacion;
+
+    // Actualizar puntaje en header
+    document.getElementById('puntaje-actual').textContent = estado.aciertos;
+
+    // Mostrar botón
+    const btn = document.getElementById('btn-siguiente');
+    if (estado.indiceActual === estado.preguntas.length - 1) {
+      btn.textContent = 'Ver resultados →';
+    } else {
+      btn.textContent = 'Siguiente pregunta →';
+    }
+    btn.style.display = 'block';
+    btn.focus();
+  }
+
+  function siguiente() {
+    if (estado.indiceActual < estado.preguntas.length - 1) {
+      estado.indiceActual++;
+      renderPregunta();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      mostrarResultados();
+    }
+  }
+
+  function mostrarResultados() {
+    document.getElementById('resultado-num').textContent = estado.aciertos;
+    document.getElementById('resultado-total').textContent = estado.preguntas.length;
+
+    const pct = (estado.aciertos / estado.preguntas.length) * 100;
+    let mensaje, submensaje;
+    if (pct === 100) {
+      mensaje = '¡Perfecto! 🎉';
+      submensaje = 'Dominas las reglas de edición. ¡Eres un maestro de la lengua!';
+    } else if (pct >= 80) {
+      mensaje = '¡Excelente trabajo! 🌟';
+      submensaje = 'Tienes un dominio muy sólido. Sigue practicando los detalles.';
+    } else if (pct >= 60) {
+      mensaje = '¡Buen progreso! 👍';
+      submensaje = 'Vas por buen camino. Repasa las reglas que fallaste y vuelve a intentarlo.';
+    } else if (pct >= 40) {
+      mensaje = 'Sigue practicando 📚';
+      submensaje = 'Necesitas reforzar algunas reglas. Lee con atención cada explicación.';
+    } else {
+      mensaje = 'No te desanimes 💪';
+      submensaje = 'Cada error es una oportunidad de aprender. ¡Vuelve a intentarlo!';
+    }
+    document.getElementById('resultado-mensaje').textContent = mensaje;
+    document.getElementById('resultado-submensaje').textContent = submensaje;
+
+    // Resumen por categoría
+    const resumen = document.getElementById('resumen-categorias');
+    resumen.innerHTML = '';
+    Object.keys(estado.totalPorCategoria).forEach(cat => {
+      const total = estado.totalPorCategoria[cat];
+      if (total === 0) return;
+      const aciertos = estado.aciertosPorCategoria[cat];
+      const item = document.createElement('div');
+      item.className = 'detalle-item';
+      item.innerHTML = `
+        <span class="nombre">${NOMBRES_CATEGORIA[cat]}</span>
+        <span class="valor">${aciertos} / ${total}</span>
+      `;
+      resumen.appendChild(item);
+    });
+
+    mostrarPantalla('pantalla-resultados');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ============ INICIO DE RONDA ============
+  function iniciarRonda(modo) {
+    estado.modo = modo;
+    estado.preguntas = seleccionarPreguntas(modo);
+    estado.indiceActual = 0;
+    estado.aciertos = 0;
+    estado.aciertosPorCategoria = { ortografia:0, gramatica:0, puntuacion:0 };
+    estado.totalPorCategoria = { ortografia:0, gramatica:0, puntuacion:0 };
+    estado.respondida = false;
+
+    mostrarPantalla('pantalla-quiz');
+    renderPregunta();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ============ EVENT LISTENERS ============
+  document.querySelectorAll('.modo-card').forEach(card => {
+    const handler = () => iniciarRonda(card.dataset.modo);
+    card.addEventListener('click', handler);
+    card.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter' || ev.key === ' ') {
+        ev.preventDefault();
+        handler();
+      }
+    });
+  });
+
+  document.getElementById('btn-siguiente').addEventListener('click', siguiente);
+
+  document.getElementById('btn-otra-ronda').addEventListener('click', () => {
+    iniciarRonda(estado.modo);
+  });
+
+  document.getElementById('btn-cambiar-modo').addEventListener('click', () => {
+    mostrarPantalla('pantalla-inicio');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+})();
+</script>
+</body>
+</html>
