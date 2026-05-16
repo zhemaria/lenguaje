@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Entrenador profesional de lectura — GED</title>
+  <title>Entrenador profesional de lectura</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
     :root {
@@ -312,7 +312,7 @@
 <div id="app-container">
 
   <header class="app-header">
-    <h1>📖 Entrenador profesional de lectura — GED</h1>
+    <h1>📖 Entrenador profesional de lectura</h1>
     <p>Practica hasta sostener velocidad de examen (300+ ppm) con buena comprensión</p>
   </header>
 
@@ -330,9 +330,10 @@
     <div class="control-group">
       <label>⚡ Velocidad</label>
       <select id="speedSelector">
-        <option value="333">🐢 Lenta (~180 ppm)</option>
+        <option value="600" selected>🐌 Principiante (~100 ppm)</option>
+        <option value="333">🐢 Mejorando (~180 ppm)</option>
         <option value="250">🚶 Media (~240 ppm)</option>
-        <option value="200" selected>🏃 Examen (~300 ppm)</option>
+        <option value="200">🏃 Examen (~300 ppm)</option>
         <option value="167">🚀 Avanzada (~360 ppm)</option>
       </select>
     </div>
@@ -393,8 +394,40 @@
   if(window.entrenadorLecturaIniciado) return;
   window.entrenadorLecturaIniciado = true;
 
-  /* ─── TEXTOS GED ─── */
+  /* ─── TEXTOS ─── */
   const TEXTOS = [
+    {
+      titulo: '🐱 El gato, monarca absoluto del hogar',
+      contenido: [
+        'Cualquiera que conviva con un gato sabe la verdad incómoda: tú no tienes un gato, el gato te tiene a ti. Desde el primer día, esta criatura peluda asume el control silencioso del hogar y reparte responsabilidades sin pedir permiso. Tú abres latas, tú llenas el bebedero, tú limpias la caja sanitaria. Él, mientras tanto, supervisa la operación desde el sofá con expresión de aburrida superioridad.',
+        'Las mañanas son particularmente reveladoras. A las cinco en punto, sin reloj y sin alarma, el gato decide que ya es hora de desayunar. Camina sobre tu cabeza, te araña los pies por encima de la sábana y, si nada funciona, empuja del borde de la mesa cualquier objeto frágil que encuentre. La estrategia es infalible: tú te levantas porque la dignidad de un vaso pesa más que la tuya a esa hora.',
+        'Su territorio merece capítulo aparte. Cada caja vacía, bolsa abandonada o lugar tibio del piso le pertenece por derecho ancestral. Las leyes de la física parecen no aplicarle: cabe en envases que claramente son más pequeños que él. Si tú dejas una hoja de papel en el suelo, esa hoja deja de ser tuya. Es del gato. No hay discusión, no hay apelación posible, no hay tribunal que escuche tu caso.',
+        'Otro misterio es su agenda diaria. Duerme dieciséis horas al día, se acicala otras cuatro, come en quince minutos y, sin embargo, siempre se ve agotado. Cuando finalmente tú llegas exhausto del trabajo y te sientas a descansar, él te mira con compasión genuina, como si tu vida fuera particularmente difícil de entender. Luego se acomoda sobre tu computadora justo cuando intentas escribir un correo importante.',
+        'Y a pesar de todo, lo amamos. Lo amamos cuando ronronea sobre nuestras piernas en una noche fría. Lo amamos cuando nos mira con esos ojos que parecen entender más de lo que dicen. Lo amamos porque, en su infinita benevolencia, este pequeño tirano nos permite vivir bajo su mismo techo y, ocasionalmente, hasta nos concede el honor de acariciarlo durante exactamente tres segundos antes de irse.'
+      ],
+      preguntas: [
+        {
+          q: '¿Cuál es la idea principal del texto?',
+          op: ['Los gatos son animales agresivos y peligrosos', 'Los gatos dominan el hogar y a sus dueños con humor y encanto', 'Es difícil cuidar correctamente a un gato', 'Los gatos necesitan más atención veterinaria de la que reciben'],
+          correct: 1
+        },
+        {
+          q: '¿Qué tono utiliza el autor a lo largo del texto?',
+          op: ['Científico y neutral', 'Humorístico y exagerado', 'Triste y nostálgico', 'Crítico y enojado'],
+          correct: 1
+        },
+        {
+          q: 'Según el texto, ¿qué hace el gato cuando quiere despertar a su dueño por la mañana?',
+          op: ['Maúlla suavemente desde la puerta', 'Camina sobre la cabeza, araña los pies y empuja objetos frágiles de la mesa', 'Activa la alarma del teléfono', 'Espera pacientemente hasta que se despierte solo'],
+          correct: 1
+        },
+        {
+          q: '¿Qué quiere decir el autor con la frase "tú no tienes un gato, el gato te tiene a ti"?',
+          op: ['Que el gato es propiedad legal del dueño', 'Que el gato controla la dinámica del hogar en lugar del humano', 'Que es difícil conseguir un gato', 'Que el gato pertenece al vecindario, no a una sola persona'],
+          correct: 1
+        }
+      ]
+    },
     {
       titulo: '📚 La educación de adultos',
       contenido: [
@@ -702,6 +735,9 @@
       preguntasList.appendChild(block);
     });
     compSection.classList.remove('hidden');
+    btnEvaluar.disabled = false;
+    btnEvaluar.style.opacity = '1';
+    btnEvaluar.style.cursor = 'pointer';
     setTimeout(()=>{
       compSection.scrollIntoView({behavior:'smooth', block:'start'});
     }, 200);
