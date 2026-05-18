@@ -319,7 +319,7 @@
 
       /* Panel de controles a una sola columna */
       .panel-controles {
-        padding: 14px 14px 4px;
+        padding: 14px 12px 4px;
         grid-template-columns: 1fr;
         gap: 10px;
       }
@@ -334,13 +334,16 @@
       }
 
       /* Botones: en móvil los 3 caben en una fila, compactos */
-      .btn-row { gap: 6px; }
+      .btn-row { gap: 5px; }
       .btn-action {
         flex: 1 1 0;
         min-width: 0;
-        padding: 11px 4px;
-        font-size: 0.82em;
-        letter-spacing: 0.2px;
+        padding: 11px 2px;
+        font-size: 0.78em;
+        letter-spacing: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: clip;
       }
 
       /* Sección progreso */
