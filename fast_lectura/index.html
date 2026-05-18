@@ -218,7 +218,10 @@
     }
     #text-container p {
       margin: 0 0 16px;
-      text-align: justify;
+      text-align: left;
+    }
+    @media (min-width: 700px){
+      #text-container p { text-align: justify; }
     }
     .word {
       padding: 2px 1px;
@@ -305,6 +308,72 @@
       color: #888;
       font-size: 0.82em;
     }
+
+    /* ─── RESPONSIVE MÓVIL ─── */
+    @media (max-width: 600px) {
+      body { padding: 6px; }
+      #app-container { width: 100%; border-radius: 10px; }
+
+      .app-header { padding: 16px 14px; }
+      .alerta { padding: 10px 14px; }
+
+      /* Panel de controles a una sola columna */
+      .panel-controles {
+        padding: 14px 14px 4px;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .check-row {
+        padding: 8px 10px;
+        flex-wrap: wrap;
+      }
+      .check-row label {
+        flex: 1;
+        min-width: 0;
+        word-break: break-word;
+      }
+
+      /* Botones: en móvil los 3 caben en una fila, compactos */
+      .btn-row { gap: 6px; }
+      .btn-action {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 11px 4px;
+        font-size: 0.82em;
+        letter-spacing: 0.2px;
+      }
+
+      /* Sección progreso */
+      .progress-section { padding: 12px 14px 0; }
+      .stats-row { gap: 6px 8px; }
+      .stat-pill { padding: 7px 6px; }
+
+      /* Texto */
+      #text-container {
+        margin: 14px 14px 0;
+        padding: 16px 16px;
+        max-height: 45vh;
+        font-size: 0.95em;
+        line-height: 1.8;
+      }
+      #text-container .titulo-texto { font-size: 1.05em; }
+
+      /* Comprensión */
+      #comprension-section {
+        margin: 14px 14px 0;
+        padding: 16px 16px;
+      }
+      .opcion-comp { padding: 10px 12px; }
+
+      .atribucion { padding: 14px 10px; font-size: 0.78em; }
+    }
+
+    /* Pantallas muy estrechas (≤360px) */
+    @media (max-width: 360px) {
+      .app-header h1 { font-size: 1.15em; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      #text-container { padding: 14px 12px; }
+    }
   </style>
 </head>
 <body>
@@ -340,7 +409,7 @@
 
     <div class="check-row">
       <input type="checkbox" id="metronomeToggle"/>
-      <label for="metronomeToggle">🥁 Activar metrónomo (suena con cada palabra)</label>
+      <label for="metronomeToggle">🥁 Activar metrónomo (1 tono por palabra)</label>
     </div>
 
     <div class="btn-row">
